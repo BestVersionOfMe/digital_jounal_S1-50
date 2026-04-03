@@ -216,7 +216,7 @@ export function SelfCompassionSection() {
                   <div>
                     <p className="mb-2.5 flex items-center gap-1.5 text-[0.8125rem] text-slate-500">
                       <span aria-hidden>💡</span>
-                      <span>Need help？</span>
+                      <span>Need help?</span>
                     </p>
                     <div className="flex flex-wrap items-center gap-2">
                       {current.suggestions.map((s) => (
