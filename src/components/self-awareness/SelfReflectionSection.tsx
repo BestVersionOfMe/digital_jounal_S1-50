@@ -1,0 +1,481 @@
+"use client";
+
+import { useCallback } from "react";
+import { useJournalStorage } from "@/hooks/useJournalStorage";
+import type {
+  ReflectionWordChoice,
+  SelfReflectionMeasure,
+  SelfReflectionScale,
+} from "@/lib/self-awareness";
+
+type Props = {
+  headingId: string;
+};
+
+const SCALE_ROW: { id: SelfReflectionScale; label: string; hint: string }[] = [
+  { id: "numbers", label: "Numbers", hint: "1 – 10" },
+  { id: "words", label: "Words", hint: "Rarely → Always" },
+  { id: "emojis", label: "Emojis", hint: "Mood" },
+];
+
+const WORD_OPTIONS: { id: ReflectionWordChoice; label: string }[] = [
+  { id: "rarely", label: "Rarely" },
+  { id: "sometimes", label: "Sometimes" },
+  { id: "often", label: "Often" },
+  { id: "always", label: "Always" },
+];
+
+const EMOJI_OPTIONS: { label: string }[] = [
+  { label: "Low" },
+  { label: "Okay" },
+  { label: "Good" },
+  { label: "Great" },
+];
+
+const ROW_TRACK_BG = [
+  "bg-sky-200/85",
+  "bg-purple-200/80",
+  "bg-indigo-300/75",
+] as const;
+
+const moodStroke = "#2B6A9E";
+
+function newMeasureId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `sr_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function MoodFace({ mood, className = "h-12 w-12" }: { mood: 0 | 1 | 2 | 3; className?: string }) {
+  const mouth =
+    mood === 0 ? (
+      <path
+        d="M 16 30 Q 24 24 32 30"
+        fill="none"
+        stroke={moodStroke}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    ) : mood === 1 ? (
+      <path d="M 17 30 H 31" stroke={moodStroke} strokeWidth="2" strokeLinecap="round" />
+    ) : mood === 2 ? (
+      <path
+        d="M 16 28 Q 24 34 32 28"
+        fill="none"
+        stroke={moodStroke}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    ) : (
+      <path
+        d="M 14 26 Q 24 38 34 26"
+        fill="none"
+        stroke={moodStroke}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    );
+
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden>
+      <circle cx="24" cy="24" r="17" fill="none" stroke={moodStroke} strokeWidth="2" />
+      <circle cx="17" cy="20" r="2.2" fill={moodStroke} />
+      <circle cx="31" cy="20" r="2.2" fill={moodStroke} />
+      {mouth}
+    </svg>
+  );
+}
+
+function RatingSlider({
+  value,
+  onChange,
+  min = 1,
+  max = 10,
+  dense,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+  min?: number;
+  max?: number;
+  dense?: boolean;
+}) {
+  return (
+    <div className={dense ? "pt-0.5" : "pt-2"}>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className={`bvm-slider w-full cursor-pointer appearance-none rounded-full bg-white/50 accent-bvm-title ${dense ? "h-1.5" : "h-2"}`}
+        aria-label="Rating slider"
+      />
+      {!dense ? (
+        <div className="mt-1 flex justify-between px-0.5 text-[0.65rem] font-medium text-slate-600">
+          <span>{min}</span>
+          <span>{max}</span>
+        </div>
+      ) : (
+        <div className="mt-0.5 text-center text-[0.65rem] font-semibold text-bvm-title">{value}</div>
+      )}
+    </div>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function scaleDisplayName(s: SelfReflectionScale): string {
+  if (s === "numbers") return "Numbers (1 – 10)";
+  if (s === "words") return "Words (Rarely → Always)";
+  return "Emojis (mood)";
+}
+
+function JournalRatingCell({
+  m,
+  onPatch,
+}: {
+  m: SelfReflectionMeasure;
+  onPatch: (patch: Partial<Pick<SelfReflectionMeasure, "numberValue" | "wordChoice" | "emojiIndex">>) => void;
+}) {
+  if (m.scale === "numbers") {
+    return (
+      <div className="flex h-full min-h-[40px] flex-col justify-center">
+        <RatingSlider
+          dense
+          value={m.numberValue}
+          onChange={(n) => onPatch({ numberValue: n })}
+        />
+      </div>
+    );
+  }
+
+  if (m.scale === "words") {
+    return (
+      <div style={{ direction: "rtl" }} className="grid grid-cols-2 gap-1">
+        {WORD_OPTIONS.map((w) => {
+          const sel = m.wordChoice === w.id;
+          return (
+            <button
+              key={w.id}
+              type="button"
+              onClick={() => onPatch({ wordChoice: w.id })}
+              className={[
+                "rounded-full border px-1 py-1 text-center text-[0.62rem] font-semibold leading-tight text-slate-900 sm:text-[0.68rem]",
+                sel
+                  ? "border-bvm-title bg-white shadow-sm ring-1 ring-bvm-title/25"
+                  : "border-[#c9c4e8] bg-white/90 hover:bg-white",
+              ].join(" ")}
+            >
+              {w.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex max-w-full flex-nowrap justify-center gap-0.5 overflow-x-auto pb-0.5">
+      {EMOJI_OPTIONS.map((opt, i) => {
+        const selected = m.emojiIndex === i;
+        return (
+          <button
+            key={opt.label}
+            type="button"
+            onClick={() => onPatch({ emojiIndex: i })}
+            className={[
+              "flex min-w-[2.25rem] flex-col items-center rounded-lg px-0.5 py-0.5",
+              selected ? "bg-white/90 ring-1 ring-bvm-title/30" : "opacity-85 hover:opacity-100",
+            ].join(" ")}
+            title={opt.label}
+          >
+            <MoodFace mood={i as 0 | 1 | 2 | 3} className="h-7 w-7 sm:h-8 sm:w-8" />
+            <span className="mt-0.5 max-w-[2.5rem] truncate text-center text-[0.55rem] font-medium leading-none text-slate-600">
+              {opt.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function SelfReflectionSection({ headingId }: Props) {
+  const {
+    state,
+    setReflectionArea,
+    setReflectionScale,
+    setReflectionNumberValue,
+    setReflectionWordChoice,
+    setReflectionEmojiIndex,
+    addReflectionMeasure,
+    removeReflectionMeasure,
+    updateReflectionMeasure,
+  } = useJournalStorage();
+
+  const createJournal = useCallback(() => {
+    const measure: SelfReflectionMeasure = {
+      id: newMeasureId(),
+      area: state.reflectionArea.trim(),
+      scale: state.reflectionScale,
+      numberValue: state.reflectionNumberValue,
+      wordChoice: state.reflectionWordChoice,
+      emojiIndex: state.reflectionEmojiIndex,
+    };
+    addReflectionMeasure(measure);
+  }, [
+    addReflectionMeasure,
+    state.reflectionArea,
+    state.reflectionEmojiIndex,
+    state.reflectionNumberValue,
+    state.reflectionScale,
+    state.reflectionWordChoice,
+  ]);
+
+  const scale = state.reflectionScale;
+
+  return (
+    <div className="mx-auto max-w-[40rem] space-y-8 px-5 pb-14 sm:max-w-[42rem] sm:px-8">
+      <section
+        className="rounded-[1.35rem] border border-white/65 bg-white/35 px-5 py-8 shadow-[0_1px_0_rgba(43,106,158,0.06),inset_0_1px_0_rgba(255,255,255,0.45)] backdrop-blur-[2px] sm:px-8 sm:py-10"
+        aria-labelledby={headingId}
+      >
+        <div className="mb-7">
+          <h2
+            id={headingId}
+            className="font-display text-center text-[1.125rem] font-semibold tracking-[0.045em] text-bvm-title sm:text-[1.25rem]"
+          >
+            SELF REFLECTION
+          </h2>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-display text-[1rem] font-medium text-bvm-title sm:text-[1.05rem]">
+              Choose What to Measure
+            </h3>
+            <label className="mt-4 block text-[0.8125rem] font-medium text-slate-800">Area</label>
+            <input
+              type="text"
+              value={state.reflectionArea}
+              onChange={(e) => setReflectionArea(e.target.value)}
+              placeholder="e.g., Sleep quality"
+              className="mt-2 w-full rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-[0.95rem] text-slate-700 placeholder:text-slate-400 focus:border-bvm-title/50 focus:outline-none focus:ring-2 focus:ring-bvm-title/20"
+            />
+          </div>
+
+          <div>
+            <h3 className="font-display text-[1rem] font-medium text-bvm-title sm:text-[1.05rem]">
+              Choose your scoring scale
+            </h3>
+            <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+              {SCALE_ROW.map((t) => {
+                const selected = scale === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setReflectionScale(t.id)}
+                    className={[
+                      "rounded-2xl border px-2 py-3 text-center transition-colors sm:py-3.5",
+                      selected
+                        ? "border-bvm-title bg-white/90 shadow-sm ring-1 ring-bvm-title/25"
+                        : "border-slate-200/80 bg-white/50 hover:bg-white/75",
+                    ].join(" ")}
+                    aria-pressed={selected}
+                  >
+                    <div className="text-[0.9rem] font-semibold text-slate-900 sm:text-[0.95rem]">
+                      {t.label}
+                    </div>
+                    <div className="mt-1 text-[0.65rem] font-medium text-slate-500 sm:text-[0.7rem]">
+                      {t.hint}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200/50 bg-white/25 px-4 py-4">
+            <div className="text-[0.8125rem] font-medium text-slate-600">Preview:</div>
+
+            {scale === "numbers" && (
+              <div className="mt-3">
+                <div className="flex items-baseline justify-between">
+                  <div className="text-[0.98rem] font-semibold text-slate-900">Rating</div>
+                  <div className="text-[0.98rem] font-semibold text-bvm-title">
+                    {state.reflectionNumberValue}
+                  </div>
+                </div>
+                <div className="mt-1 text-[0.78rem] font-medium text-slate-500">1 (low) → 10 (high)</div>
+                <RatingSlider value={state.reflectionNumberValue} onChange={setReflectionNumberValue} />
+              </div>
+            )}
+
+            {scale === "words" && (
+              <div className="mt-3">
+                <div className="grid grid-cols-3 gap-2">
+                  {WORD_OPTIONS.slice(0, 3).map((w) => {
+                    const sel = state.reflectionWordChoice === w.id;
+                    return (
+                      <button
+                        key={w.id}
+                        type="button"
+                        onClick={() => setReflectionWordChoice(w.id)}
+                        className={[
+                          "rounded-full border px-2 py-2.5 text-center text-[0.85rem] font-semibold text-slate-900 transition-colors sm:text-[0.9rem]",
+                          sel
+                            ? "border-bvm-title bg-white shadow-sm ring-1 ring-bvm-title/20"
+                            : "border-[#c9c4e8] bg-white/80 hover:bg-white",
+                        ].join(" ")}
+                      >
+                        {w.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-2 flex justify-center">
+                  {(() => {
+                    const w = WORD_OPTIONS[3]!;
+                    const sel = state.reflectionWordChoice === w.id;
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setReflectionWordChoice(w.id)}
+                        className={[
+                          "min-w-[10rem] rounded-full border px-6 py-2.5 text-center text-[0.85rem] font-semibold text-slate-900 transition-colors sm:text-[0.9rem]",
+                          sel
+                            ? "border-bvm-title bg-white shadow-sm ring-1 ring-bvm-title/20"
+                            : "border-[#c9c4e8] bg-white/80 hover:bg-white",
+                        ].join(" ")}
+                      >
+                        {w.label}
+                      </button>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {scale === "emojis" && (
+              <div className="mt-4 grid grid-cols-4 gap-2 sm:gap-3">
+                {EMOJI_OPTIONS.map((opt, i) => {
+                  const selected = state.reflectionEmojiIndex === i;
+                  return (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => setReflectionEmojiIndex(i)}
+                      className={[
+                        "flex flex-col items-center rounded-2xl border px-1 py-2 transition-colors",
+                        selected
+                          ? "border-bvm-title bg-white/90 ring-1 ring-bvm-title/20"
+                          : "border-transparent bg-transparent hover:bg-white/40",
+                      ].join(" ")}
+                    >
+                      <MoodFace mood={i as 0 | 1 | 2 | 3} />
+                      <span className="mt-1.5 text-[0.75rem] font-medium text-slate-600 sm:text-[0.8rem]">
+                        {opt.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={createJournal}
+            className="w-full rounded-2xl border border-bvm-title/40 bg-bvm-title/90 py-3.5 text-[0.95rem] font-semibold text-white shadow-sm transition-colors hover:bg-bvm-title"
+          >
+            Create
+          </button>
+        </div>
+      </section>
+
+      <section className="space-y-4" aria-labelledby="self-reflection-journal-heading">
+        <h3
+          id="self-reflection-journal-heading"
+          className="font-display text-center text-[1.05rem] font-semibold tracking-[0.04em] text-bvm-title sm:text-[1.15rem]"
+        >
+          My self reflection journal
+        </h3>
+
+        <div className="rounded-[1.25rem] border-2 border-bvm-title/35 bg-gradient-to-br from-sky-50/90 to-indigo-50/40 px-3 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-5 sm:py-5">
+          <div className="mb-3 flex items-start gap-2 sm:mb-4">
+            <div className="w-[26%] min-w-0 sm:w-[28%]">
+              <p className="font-display text-[0.95rem] font-bold text-slate-900 sm:text-base">Week One</p>
+            </div>
+              <div className="flex min-w-0 flex-1 items-center justify-end">
+                <p className="text-[0.8rem] font-bold text-slate-900 sm:text-sm">Rating</p>
+              </div>
+            <div className="w-7 shrink-0 sm:w-8" aria-hidden />
+          </div>
+
+          {state.reflectionMeasures.length === 0 ? (
+            <p className="py-8 text-center text-[0.9rem] leading-relaxed text-slate-600">
+              Please create your self reflection measure.
+            </p>
+          ) : (
+            <ul className="space-y-3 sm:space-y-4">
+              {state.reflectionMeasures.map((m, i) => (
+                <li key={m.id} className="flex items-stretch gap-1.5 sm:gap-2">
+                  <div className="w-[26%] min-w-0 shrink-0 sm:w-[28%]">
+                    <p className="text-[0.68rem] font-semibold text-slate-700 sm:text-[0.72rem]">
+                      Area {i + 1}:
+                    </p>
+                    <p
+                      className="mt-0.5 truncate text-[0.78rem] font-medium text-slate-900 sm:text-[0.85rem]"
+                      title={m.area || undefined}
+                    >
+                      {m.area || "—"}
+                    </p>
+                    <p
+                      className="mt-1 truncate text-[0.62rem] text-slate-500 sm:text-[0.65rem]"
+                      title={scaleDisplayName(m.scale)}
+                    >
+                      {scaleDisplayName(m.scale)}
+                    </p>
+                  </div>
+
+                  <div className="flex min-w-0 flex-1 items-center overflow-hidden rounded-full border border-sky-200/60 bg-white/25 px-2 py-1.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)]">
+                    <div className="w-full px-1.5">
+                      <JournalRatingCell
+                        m={m}
+                        onPatch={(patch) => updateReflectionMeasure(m.id, patch)}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeReflectionMeasure(m.id)}
+                    className="shrink-0 self-center rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                    aria-label={`Delete measure ${i + 1}`}
+                  >
+                    <IconTrash />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
