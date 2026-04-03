@@ -20,8 +20,26 @@ export default function Home() {
 
       {JOURNAL_NAV_ITEMS.map(({ id }) => {
         const headingId = `${id}-heading`;
+        const title =
+          id === "self-compassion"
+            ? "SELF COMPASSION"
+            : id === "seeking-feedback"
+              ? "SEEKING FEEDBACK"
+              : id === "honesty"
+                ? "HONESTY"
+                : id === "self-reflection"
+                  ? "SELF REFLECTION"
+                  : "";
         return (
           <section key={id} id={id} className={sectionScrollClass} aria-labelledby={headingId}>
+            {title ? (
+              <h2
+                id={headingId}
+                className="font-display text-center text-[1.25rem] font-semibold tracking-[0.04em] text-bvm-title sm:text-[1.375rem]"
+              >
+                {title}
+              </h2>
+            ) : null}
             {id === "self-compassion" && <SelfCompassionSection />}
             {id === "seeking-feedback" && <SeekingFeedbackSection headingId={headingId} />}
             {id === "honesty" && <HonestySection headingId={headingId} />}

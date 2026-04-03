@@ -52,16 +52,8 @@ export function HonestySection({ headingId }: Props) {
     <div className="mx-auto max-w-[40rem] px-5 pb-16 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
       <section
         className="rounded-[1.25rem] border-2 border-pink-300/90 bg-white px-5 py-7 shadow-[0_4px_24px_rgba(219,100,140,0.1)] sm:px-7 sm:py-8"
-        aria-labelledby={headingId}
       >
-        <h2
-          id={headingId}
-          className="font-display text-left text-[1.15rem] font-bold uppercase tracking-[0.06em] text-pink-500 sm:text-[1.25rem]"
-        >
-          GIVING FEEDBACK
-        </h2>
-
-        <p className="mt-5 text-[0.9375rem] leading-[1.75] text-slate-600 sm:text-[1rem]">
+        <p className="mt-3 text-[0.9375rem] leading-[1.75] text-slate-600 sm:text-[1rem]">
           Giving feedback is just as important as receiving it. Use the{" "}
           <strong className="font-semibold text-slate-800">Glow &amp; Grow</strong> method:
         </p>

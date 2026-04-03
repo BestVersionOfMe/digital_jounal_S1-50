@@ -249,20 +249,11 @@ export function SelfReflectionSection({ headingId }: Props) {
   const scale = state.reflectionScale;
 
   return (
-    <div className="mx-auto max-w-[40rem] space-y-8 px-5 pb-14 sm:max-w-[42rem] sm:px-8">
+    <div className="mx-auto max-w-[40rem] space-y-8 px-5 pb-16 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
       <section
         className="rounded-[1.35rem] border border-white/65 bg-white/35 px-5 py-8 shadow-[0_1px_0_rgba(43,106,158,0.06),inset_0_1px_0_rgba(255,255,255,0.45)] backdrop-blur-[2px] sm:px-8 sm:py-10"
         aria-labelledby={headingId}
       >
-        <div className="mb-7">
-          <h2
-            id={headingId}
-            className="font-display text-center text-[1.125rem] font-semibold tracking-[0.045em] text-bvm-title sm:text-[1.25rem]"
-          >
-            SELF REFLECTION
-          </h2>
-        </div>
-
         <div className="space-y-6">
           <div>
             <h3 className="font-display text-[1rem] font-medium text-bvm-title sm:text-[1.05rem]">

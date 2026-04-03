@@ -23,7 +23,7 @@ export function SelfAwarenessIntroAndSkills() {
   );
 
   return (
-    <div className="bvm-page mx-auto max-w-[40rem] px-5 pt-14 text-slate-800 sm:max-w-[42rem] sm:px-8 sm:pt-16">
+    <div className="bvm-page mx-auto max-w-[40rem] px-5 pb-12 pt-14 text-slate-800 sm:max-w-[42rem] sm:px-8 sm:pb-16 sm:pt-16">
       <header className="mx-auto max-w-xl text-center">
         <h1 className="font-display text-[1.625rem] font-semibold leading-[1.12] tracking-[0.04em] text-bvm-title drop-shadow-[0_1px_0_rgba(255,255,255,0.45)] sm:text-[1.8125rem]">
           <span className="text-balance">SELF-AWARENESS</span>

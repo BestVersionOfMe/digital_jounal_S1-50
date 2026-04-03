@@ -136,7 +136,7 @@ export function SelfCompassionSection() {
   const isFirst = step === 0;
 
   return (
-    <div className="w-full bg-[#e4e2f5] py-10 pb-14 sm:py-12 sm:pb-16">
+    <div className="w-full pt-8 pb-14 sm:pt-10 sm:pb-16">
       <div className="mx-auto max-w-[26rem] px-4 sm:max-w-[28rem] sm:px-5">
         <p className="mb-6 text-center text-[0.8125rem] leading-relaxed text-slate-600 sm:mb-7 sm:text-[0.875rem]">
           <span className="text-balance">
@@ -176,17 +176,6 @@ export function SelfCompassionSection() {
           </div>
 
           <div className="px-4 pb-2 pt-4 sm:px-6 sm:pt-5">
-            <div className="mx-auto mb-5 flex justify-center sm:mb-6">
-              <div className="rounded-xl bg-[#fef9c3] px-8 py-2.5 shadow-[0_3px_0_rgba(180,160,60,0.25),0_6px_16px_rgba(200,180,80,0.15)] sm:px-10 sm:py-3">
-                <h2
-                  id="self-compassion-heading"
-                  className="text-center font-display text-[0.95rem] font-bold uppercase tracking-[0.12em] text-slate-900 sm:text-[1.05rem]"
-                >
-                  SELF COMPASSION
-                </h2>
-              </div>
-            </div>
-
             <div className="relative min-h-[18rem] sm:min-h-[19rem]">
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
