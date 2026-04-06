@@ -100,14 +100,102 @@ export type SelfReflectionScale = "numbers" | "words" | "emojis";
 
 export type ReflectionWordChoice = "rarely" | "sometimes" | "often" | "always";
 
+/** Preset frequency words for the Words scale (multi-select, max `MAX_REFLECTION_WORDS`). */
+export const WORD_PRESET_LABELS = [
+  "Never",
+  "Rarely",
+  "Occasionally",
+  "Sometimes",
+  "Often",
+  "Frequently",
+  "Usually",
+  "Consistently",
+  "Almost always",
+  "Always",
+] as const;
+
+export const MAX_REFLECTION_WORDS = 4;
+
+const LEGACY_WORD_CHOICE_LABEL: Record<ReflectionWordChoice, string> = {
+  rarely: "Rarely",
+  sometimes: "Sometimes",
+  often: "Often",
+  always: "Always",
+};
+
+export function legacyWordChoiceToLabel(c: ReflectionWordChoice): string {
+  return LEGACY_WORD_CHOICE_LABEL[c];
+}
+
+/** Dedupe (case-insensitive), trim, cap length. */
+export function normalizeWordTokens(input: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of input) {
+    const s = raw.trim();
+    if (!s) continue;
+    const key = s.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(s);
+    if (out.length >= MAX_REFLECTION_WORDS) break;
+  }
+  return out;
+}
+
+export function isPresetWordLabel(s: string): boolean {
+  const k = s.trim().toLowerCase();
+  return WORD_PRESET_LABELS.some((p) => p.toLowerCase() === k);
+}
+
+/** Custom words the user added to the chip list (not auto-selected). Deduped; presets excluded. */
+export function normalizeCustomWordPool(input: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of input) {
+    const s = raw.trim();
+    if (!s || isPresetWordLabel(s)) continue;
+    const key = s.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(s);
+    if (out.length >= 32) break;
+  }
+  return out;
+}
+
+/** Ensures every selected non-preset word has a chip in the pool. */
+export function ensureCustomPoolCoversSelections(tokens: string[], pool: string[]): string[] {
+  return normalizeCustomWordPool([...pool, ...tokens]);
+}
+
 /** One saved row in “My self reflection journal” (Week One). */
 export type SelfReflectionMeasure = {
   id: string;
   area: string;
   scale: SelfReflectionScale;
-  numberValue: number;
-  wordChoice: ReflectionWordChoice | null;
-  emojiIndex: number;
+  /** Numbers scale: 1–10; `null` = not chosen yet. */
+  numberValue: number | null;
+  /**
+   * Words scale: up to `MAX_REFLECTION_WORDS` labels chosen when Create was pressed — fixed palette in the journal row.
+   */
+  wordTokens: string[];
+  /** Words scale: which palette entry is the rating (single choice). `null` = none chosen yet. */
+  wordRatingIndex: number | null;
+  /** Legacy single chip; ignored when `wordTokens` is non-empty. */
+  wordChoice?: ReflectionWordChoice | null;
+  /** Emojis scale: 0–3; `null` = not chosen yet. */
+  emojiIndex: number | null;
+};
+
+/** One week block in “My self reflection journal” (Week One, Week Two, …). */
+export type ReflectionWeekBlock = {
+  id: string;
+  /** Display label, e.g. "Week One". */
+  label: string;
+  measures: SelfReflectionMeasure[];
+  /** When true, ratings are read-only and new rows are added to the next week only. */
+  submitted: boolean;
 };
 
 export type JournalState = {
@@ -118,12 +206,14 @@ export type JournalState = {
   reflectionScale: SelfReflectionScale;
   /** Numbers scale: 1–10 */
   reflectionNumberValue: number;
-  /** Words scale preview selection */
-  reflectionWordChoice: ReflectionWordChoice | null;
+  /** Words scale preview: preset + custom tokens (max `MAX_REFLECTION_WORDS`) */
+  reflectionWordTokens: string[];
+  /** Words scale: typed words appear here first; user clicks to select. */
+  reflectionCustomWordPool: string[];
   /** Emojis scale: 0–3 (Low → Great) */
   reflectionEmojiIndex: number;
-  /** Rows created via Create (Week One table) */
-  reflectionMeasures: SelfReflectionMeasure[];
+  /** Self-reflection journal weeks (Week One, Week Two, …) */
+  reflectionWeeks: ReflectionWeekBlock[];
   /** Seeking Feedback — who to ask */
   seekingFeedbackText: string;
   /** Honesty (Giving Feedback) — Glow & Grow plan */
@@ -145,12 +235,60 @@ export function defaultJournalState(): JournalState {
     reflectionArea: "",
     reflectionScale: "numbers",
     reflectionNumberValue: 6,
-    reflectionWordChoice: "sometimes",
+    reflectionWordTokens: ["Sometimes"],
+    reflectionCustomWordPool: [],
     reflectionEmojiIndex: 1,
-    reflectionMeasures: [],
+    reflectionWeeks: [],
     seekingFeedbackText: "",
     honestyGivingFeedbackText: "",
   };
+}
+
+const WEEK_ORDINAL = ["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight"] as const;
+
+export function weekLabelFromIndex(index: number): string {
+  const o = WEEK_ORDINAL[index];
+  return o ? `Week ${o}` : `Week ${index + 1}`;
+}
+
+export function newReflectionMeasureId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `sr_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+export function newReflectionWeekId(): string {
+  return newReflectionMeasureId();
+}
+
+/** Whether the user has completed the rating for this measure (counts toward week progress). */
+export function isMeasureRatingComplete(m: SelfReflectionMeasure): boolean {
+  if (m.scale === "words") {
+    return m.wordTokens.length > 0 && m.wordRatingIndex != null;
+  }
+  if (m.scale === "numbers") {
+    return (
+      typeof m.numberValue === "number" &&
+      m.numberValue >= 1 &&
+      m.numberValue <= 10
+    );
+  }
+  return (
+    typeof m.emojiIndex === "number" && m.emojiIndex >= 0 && m.emojiIndex <= 3
+  );
+}
+
+/** Same areas/scales/word palettes as `measures`, with fresh ratings for the next week. */
+export function cloneMeasuresForNextWeek(measures: SelfReflectionMeasure[]): SelfReflectionMeasure[] {
+  return measures.map((m) => ({
+    ...m,
+    id: newReflectionMeasureId(),
+    numberValue: m.scale === "numbers" ? null : m.numberValue,
+    wordRatingIndex: m.scale === "words" ? null : m.wordRatingIndex,
+    wordTokens: [...m.wordTokens],
+    emojiIndex: m.scale === "emojis" ? null : m.emojiIndex,
+  }));
 }
 
 export function exportMarkdown(state: JournalState): string {
@@ -178,10 +316,12 @@ export function exportMarkdown(state: JournalState): string {
   lines.push("");
   lines.push(`- Area: ${state.reflectionArea.trim() || "_(empty)_"}`);
   lines.push(`- Scoring scale: ${state.reflectionScale}`);
-  if (state.reflectionMeasures.length > 0) {
-    lines.push("- Week One measures:");
-    for (const m of state.reflectionMeasures) {
-      lines.push(`  - **${m.area || "_(empty)_"}** — ${m.scale}`);
+  if (state.reflectionWeeks.length > 0) {
+    for (const w of state.reflectionWeeks) {
+      lines.push(`- ${w.label}${w.submitted ? " (submitted)" : ""}:`);
+      for (const m of w.measures) {
+        lines.push(`  - **${m.area || "_(empty)_"}** — ${m.scale}`);
+      }
     }
   }
   lines.push("");
