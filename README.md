@@ -2,7 +2,7 @@
 
 A digital journal for the BVOM workshop.
 
-**Live site:** [https://digital-jounal-s1-50.vercel.app/](https://digital-jounal-s1-50.vercel.app/)
+**Live site:** [https://digital-jounal-s1-50.vercel.app/](https://digital-journal-s1-50.vercel.app/)
 
 ## Stack
 
