@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const TOP_SECTIONS: { href: string; label: string; disabled?: boolean }[] = [
   { href: "/", label: "Self-Awareness" },
+  { href: "/self-compassion", label: "Self-Compassion" },
   { href: "/self-management", label: "Self-Management", disabled: true },
   { href: "/social-awareness", label: "Social Awareness", disabled: true },
   { href: "/leadership", label: "Leadership", disabled: true },
