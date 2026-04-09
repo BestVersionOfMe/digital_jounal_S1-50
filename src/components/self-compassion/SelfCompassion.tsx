@@ -194,7 +194,7 @@ export default function SelfCompassion() {
           <div className="text-8xl mb-8 animate-bounce">✨</div>
           <h2 className="text-4xl font-bold text-gray-800 mb-4">You did it!</h2>
           <p className="text-xl text-gray-600 leading-relaxed mb-8 font-medium">
-            Thank you for taking the time to reflect. Remember, practicing self-compassion is a journey, and you've just taken a beautiful step forward.
+            {"Thank you for taking the time to reflect. Remember, practicing self-compassion is a journey, and you've just taken a beautiful step forward."}
           </p>
 
           {/* --- Review --- */}
@@ -202,17 +202,17 @@ export default function SelfCompassion() {
             <div className="mb-8 p-6 bg-white/60 backdrop-blur-sm rounded-2xl text-left space-y-4 border border-blue-100 shadow-sm max-h-[50vh] overflow-y-auto animate-fade-in">
               <h3 className="text-xl font-bold text-gray-800 border-b-2 border-blue-200 pb-2">My Reflection Summary:</h3>
 
-              {q1Answer && <p><strong>1. I like about myself:</strong> {q1Answer}</p>}
-              {q2Answer && <p><strong>2. I'm good at:</strong> {q2Answer}</p>}
-              {q3Answer && <p><strong>3. I worked hard on:</strong> {q3Answer}</p>}
-              {q4Answer && <p><strong>4. Comes easily to me:</strong> {q4Answer}</p>}
-              {q5Answer && <p><strong>5. I'm proud of:</strong> {q5Answer}</p>}
+              {q1Answer && <p><strong>{"1. I like about myself:"}</strong> {q1Answer}</p>}
+              {q2Answer && <p><strong>{"2. I'm good at:"}</strong> {q2Answer}</p>}
+              {q3Answer && <p><strong>{"3. I worked hard on:"}</strong> {q3Answer}</p>}
+              {q4Answer && <p><strong>{"4. Comes easily to me:"}</strong> {q4Answer}</p>}
+              {q5Answer && <p><strong>{"5. I'm proud of:"}</strong> {q5Answer}</p>}
 
               {blankAnswers['q6_emotion'] && (
-                <p><strong>6. How I treat others:</strong> "I am usually {blankAnswers['q6_emotion']}, especially when {blankAnswers['q6_action']}."</p>
+                <p><strong>6. How I treat others:</strong> {"I am usually"} {blankAnswers['q6_emotion']}, especially when {blankAnswers['q6_action']}{"."}</p>
               )}
               {blankAnswers['q7_people'] && (
-                <p><strong>7. Through others' eyes:</strong> "My {blankAnswers['q7_people']} notice I am good at {blankAnswers['q7_method']} {blankAnswers['q7_example']}."</p>
+                <p><strong>{"7. Through others' eyes:"}</strong> {"My "}{blankAnswers['q7_people']} notice I am good at {blankAnswers['q7_method']} {blankAnswers['q7_example']}{"."}</p>
               )}
 
               {q8Choice && <p><strong>8. Reaction to mistakes:</strong> {q8Choice === 'positive' ? 'Just a silly mistake.' : 'I suck at this!'}</p>}
@@ -303,7 +303,7 @@ export default function SelfCompassion() {
         {/*  Part 2 : Through Other's eyes  */}
         {(step === 6 || step === 7) && fillInBlanksConfig[step] && (
           <div className="w-full animate-fade-in">
-            <span className="text-xs font-bold text-bvm-title uppercase mb-2 block">Part 2: Through Others' Eyes</span>
+            <span className="text-xs font-bold text-bvm-title uppercase mb-2 block">{"Part 2: Through Others' Eyes"}</span>
             <h2 className="text-2xl text-gray-800 mb-6 font-medium">
               {fillInBlanksConfig[step].title}
             </h2>
@@ -446,7 +446,7 @@ export default function SelfCompassion() {
               <div className="flex flex-col items-center w-full animate-fade-in-up">
                 <div className="text-7xl mb-6 animate-bounce">🌟</div>
                 <p className="text-2xl text-green-700 leading-relaxed px-4 font-bold text-center">
-                  Not beating yourself up is exactly what Self-Compassion is all about. You're already treating yourself like a good friend.
+                  {"Not beating yourself up is exactly what Self-Compassion is all about. You're already treating yourself like a good friend."}
                 </p>
               </div>
             )}
@@ -455,7 +455,7 @@ export default function SelfCompassion() {
             {q8Choice === 'negative' && !q9Choice && (
               <div className="flex flex-col items-center w-full animate-fade-in-up">
                 <div className="bg-white/50 px-4 py-2 rounded-full mb-8 text-sm text-gray-600 font-medium shadow-sm">
-                  You just said: <span className="italic">"I suck at this!"</span>
+                  {"You just said:"} <span className="italic">{"'I suck at this!'"}</span>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">
                   Would you say that to a friend?
@@ -480,7 +480,7 @@ export default function SelfCompassion() {
                     No
                   </button>
                   <button onClick={() => setReallyChoice('yeah_hardcore')} className="px-8 py-4 rounded-full font-bold transition-all duration-300 bg-white text-orange-600 border-2 border-transparent hover:border-orange-500 shadow-sm hover:shadow-md text-lg">
-                    Yeah, I'm hardcore
+                    {"Yeah, I'm hardcore"}
                   </button>
                 </div>
               </div>
@@ -499,7 +499,7 @@ export default function SelfCompassion() {
                 )}
 
                 <p className="text-left w-full text-gray-800 mb-4 font-bold text-xl">
-                  What's something you could say to yourself instead?
+                  {"What's something you could say to yourself instead?"}
                 </p>
                 <textarea
                   className="w-full p-6 rounded-2xl bg-white shadow-md border border-blue-50 hover:shadow-lg focus:shadow-xl focus:ring-2 focus:ring-orange-400 focus:outline-none transition-all duration-300 resize-none h-40 text-gray-700 text-lg"
