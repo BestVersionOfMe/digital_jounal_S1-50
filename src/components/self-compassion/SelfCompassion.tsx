@@ -1,14 +1,19 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 export default function SelfCompassion() {
-  
+
   const [step, setStep] = useState(1);
   const totalSteps = 8;
 
   // Check 
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // Review
+  const [showReview, setShowReview] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   // Part 1: Q1 - Q5
   const [q1Answer, setQ1Answer] = useState('');
@@ -59,9 +64,9 @@ export default function SelfCompassion() {
   };
 
 
-// text: script, select: options, input: text area
+  // text: script, select: options, input: text area
   const fillInBlanksConfig: Record<number, any> = {
-    6: { 
+    6: {
       title: "What's a quality you like about how you treat other people?",
       parts: [
         { type: 'text', content: '"When I interact with others, I really like that I am usually ' },
@@ -71,7 +76,7 @@ export default function SelfCompassion() {
         { type: 'text', content: '."' }
       ]
     },
-    7: { 
+    7: {
       title: "What do your friends, family, or teachers often notice you're good at?",
       parts: [
         { type: 'text', content: '"My ' },
@@ -85,24 +90,31 @@ export default function SelfCompassion() {
   };
 
 
-
-
   const handleChipClick = (chip: string) => {
+
+    const appendIfNotExists = (prev: string) => {
+
+      // Check Prompt Chips repeat
+      if (prev.includes(chip))
+        return prev;
+
+      return prev ? `${prev}, ${chip}` : chip;
+    };
+
     if (step === 1) {
-      setQ1Answer((prev) => (prev ? `${prev}, ${chip}` : chip));
+      setQ1Answer(appendIfNotExists);
     } else if (step === 2) {
-      setQ2Answer((prev) => (prev ? `${prev}, ${chip}` : chip));
+      setQ2Answer(appendIfNotExists);
     } else if (step === 3) {
-      setQ3Answer((prev) => (prev ? `${prev}, ${chip}` : chip));
+      setQ3Answer(appendIfNotExists);
     } else if (step === 4) {
-      setQ4Answer((prev) => (prev ? `${prev}, ${chip}` : chip));
+      setQ4Answer(appendIfNotExists);
     } else if (step === 5) {
-      setQ5Answer((prev) => (prev ? `${prev}, ${chip}` : chip));
+      setQ5Answer(appendIfNotExists);
     } else if (step === 9) {
-      setQ10Answer((prev) => (prev ? `${prev}, ${chip}` : chip));
+      setQ10Answer(appendIfNotExists);
     }
   };
-
 
 
   const getCurrentAnswer = () => {
@@ -128,10 +140,12 @@ export default function SelfCompassion() {
   // change at the Q8
 
   const getBackgroundColor = () => {
+    if (isExiting) return 'rgba(43, 106, 158, 0.12)';
+
     if (step === 8 && q8Choice === 'positive') return 'bg-yellow-50';
     if (step === 8 && q8Choice === 'negative') return 'bg-orange-50';
 
-    return 'bg-blue-50';
+    return 'rgba(43, 106, 158, 0.12)';
   };
 
 
@@ -148,7 +162,7 @@ export default function SelfCompassion() {
 
   const isCurrentStepValid = () => {
     if (step >= 1 && step <= 5) return getCurrentAnswer().trim() !== '';
-    if (step === 6 || step === 7) { 
+    if (step === 6 || step === 7) {
 
       const config = fillInBlanksConfig[step];
       const requiredBlanks = config.parts.filter((p: any) => p.type === 'select' || p.type === 'input');
@@ -156,11 +170,11 @@ export default function SelfCompassion() {
       return requiredBlanks.every((b: any) => blankAnswers[b.id] && blankAnswers[b.id].trim() !== '');
     }
 
-    if (step === 8) { 
-      // 🟢 终点 1：如果是积极的分支，直接可以点击下一步
+    if (step === 8) {
+      // 🟢 Choice 1：If 'positive'，Users can directly go to the final page
       if (q8Choice === 'positive') return true;
 
-      // 🔴 终点 2：如果是消极分支，必须走到最后一步（Q10）并填写了文字
+      // 🔴 Choice 2：If 'negative'，Users should answer Q9 & Q10 and write a kind message
       if (q8Choice === 'negative') {
         const reachedQ10 = q9Choice === 'no_never' || reallyChoice !== null;
         return reachedQ10 && q10Answer.trim() !== '';
@@ -176,18 +190,54 @@ export default function SelfCompassion() {
   if (isCompleted) {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-1000 ${getBackgroundColor()}`}>
-        <div className="text-center animate-fade-in-up max-w-md">
+        <div className="text-center animate-fade-in-up w-full max-w-lg">
           <div className="text-8xl mb-8 animate-bounce">✨</div>
           <h2 className="text-4xl font-bold text-gray-800 mb-4">You did it!</h2>
-          <p className="text-xl text-gray-600 leading-relaxed mb-12 font-medium">
-            Thank you for taking the time to reflect. Remember, practicing self-compassion is a journey, and you've just taken a beautiful step forward. Have a wonderful day!
+          <p className="text-xl text-gray-600 leading-relaxed mb-8 font-medium">
+            Thank you for taking the time to reflect. Remember, practicing self-compassion is a journey, and you've just taken a beautiful step forward.
           </p>
-          <button
-            onClick={() => alert("Data saved! Exiting section...")}
-            className="px-10 py-4 rounded-full font-bold transition-all duration-300 bg-gray-800 text-white shadow-xl hover:bg-gray-700 hover:-translate-y-1 text-lg"
-          >
-            Exit Section
-          </button>
+
+          {/* --- Review --- */}
+          {showReview && (
+            <div className="mb-8 p-6 bg-white/60 backdrop-blur-sm rounded-2xl text-left space-y-4 border border-blue-100 shadow-sm max-h-[50vh] overflow-y-auto animate-fade-in">
+              <h3 className="text-xl font-bold text-gray-800 border-b-2 border-blue-200 pb-2">My Reflection Summary:</h3>
+
+              {q1Answer && <p><strong>1. I like about myself:</strong> {q1Answer}</p>}
+              {q2Answer && <p><strong>2. I'm good at:</strong> {q2Answer}</p>}
+              {q3Answer && <p><strong>3. I worked hard on:</strong> {q3Answer}</p>}
+              {q4Answer && <p><strong>4. Comes easily to me:</strong> {q4Answer}</p>}
+              {q5Answer && <p><strong>5. I'm proud of:</strong> {q5Answer}</p>}
+
+              {blankAnswers['q6_emotion'] && (
+                <p><strong>6. How I treat others:</strong> "I am usually {blankAnswers['q6_emotion']}, especially when {blankAnswers['q6_action']}."</p>
+              )}
+              {blankAnswers['q7_people'] && (
+                <p><strong>7. Through others' eyes:</strong> "My {blankAnswers['q7_people']} notice I am good at {blankAnswers['q7_method']} {blankAnswers['q7_example']}."</p>
+              )}
+
+              {q8Choice && <p><strong>8. Reaction to mistakes:</strong> {q8Choice === 'positive' ? 'Just a silly mistake.' : 'I suck at this!'}</p>}
+              {q10Answer && <p><strong>Kinder message:</strong> {q10Answer}</p>}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-5 items-center">
+            {/* Button 1：show/hide answers */}
+            <button
+              onClick={() => setShowReview(!showReview)}
+              className="text-gray-500 hover:text-gray-800 font-bold underline decoration-2 underline-offset-4 transition-colors"
+            >
+              {showReview ? "Hide my answers" : "Check my answers"}
+            </button>
+
+            {/* Button 2：Jump to Seeking-Feedback */}
+            <Link href="/#seeking-feedback">
+              <button
+                onClick={() => setIsExiting(true)}
+                className="px-10 py-4 rounded-full font-bold transition-all duration-300 bg-gray-800 text-white shadow-xl hover:bg-gray-700 hover:-translate-y-1 text-lg flex items-center gap-2">
+                Go to next part <span>→</span>
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -197,32 +247,32 @@ export default function SelfCompassion() {
     <div className={`min-h-screen flex flex-col justify-between p-6 transition-colors duration-700 ${getBackgroundColor()}`}>
 
       {/* Top bar */}
-      <div className="flex justify-between items-center w-full max-w-md mx-auto pt-8">
+      <div className="flex justify-between items-center w-full max-w-md mx-auto pt-20">
         <button
           onClick={() => step > 1 && setStep(step - 1)}
           className={`font-medium transition-opacity ${step === 1 ? 'opacity-0 cursor-default' : 'text-gray-500 hover:text-gray-800'}`}
         >
           ← Back
         </button>
-        <span className="text-xs text-gray-400 uppercase tracking-wider font-bold">Best Version of Me</span>
-        <button className="text-gray-500 hover:text-gray-800 text-xl">×</button>
       </div>
 
-      {/* 主体 */}
+
+      {/* Main Body*/}
       <div className="flex-grow flex flex-col items-center justify-center w-full max-w-md mx-auto mt-4">
 
-        {step < 9 && (
-          <div className="bg-yellow-100 text-yellow-800 font-bold px-8 py-3 rounded-full mb-8 shadow-sm text-lg tracking-wide">
-            SELF COMPASSION
-          </div>
-        )}
+        {/* Title */}
+        <div className="w-full text-center mb-10 animate-fade-in">
+          <h1 className="font-display text-[1.25rem] font-semibold tracking-[0.04em] text-bvm-title sm:text-[1.375rem] uppercase">
+            Self Compassion
+          </h1>
+        </div>
 
-        {/* ================= Part 1 : Discovering Me  ================= */}
+        {/*  Part 1 : Discovering Me   */}
         {step >= 1 && step <= 5 && (
           <div className="w-full animate-fade-in">
-            <span className="text-xs font-bold text-blue-500 uppercase mb-2 block">Part 1: Discover Me</span>
+            <span className="text-xs font-bold text-bvm-title uppercase mb-2 block">Part 1: Discover Me</span>
             <h2 className="text-2xl text-gray-800 mb-6 font-medium">
-              
+
               {questionsConfig[step as keyof typeof questionsConfig]}
             </h2>
             <textarea
@@ -235,7 +285,7 @@ export default function SelfCompassion() {
             <div className="mt-6">
               <p className="text-sm text-gray-500 mb-3 font-medium">💡 Need some inspiration?</p>
               <div className="flex flex-wrap gap-2">
-                
+
                 {promptChipsConfig[step as keyof typeof promptChipsConfig]?.map((chip) => (
                   <button
                     key={chip}
@@ -250,46 +300,46 @@ export default function SelfCompassion() {
           </div>
         )}
 
-        {/* ================= Part 2 : Through Other's eyes ================= */}
+        {/*  Part 2 : Through Other's eyes  */}
         {(step === 6 || step === 7) && fillInBlanksConfig[step] && (
           <div className="w-full animate-fade-in">
-            <span className="text-xs font-bold text-blue-500 uppercase mb-2 block">Part 2: Through Others' Eyes</span>
+            <span className="text-xs font-bold text-bvm-title uppercase mb-2 block">Part 2: Through Others' Eyes</span>
             <h2 className="text-2xl text-gray-800 mb-6 font-medium">
               {fillInBlanksConfig[step].title}
             </h2>
 
-            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-white leading-[3rem] text-xl text-gray-700">
+            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-white leading-[3rem] text-l text-gray-700">
 
-              
+
               {fillInBlanksConfig[step].parts.map((part: any, index: number) => {
 
-               
+
                 if (part.type === 'text') {
                   return <span key={index}>{part.content}</span>;
                 }
 
                 if (part.type === 'select') {
                   const val = blankAnswers[part.id] || '';
-                  const isCustom = customModes[part.id]; 
+                  const isCustom = customModes[part.id];
 
-                  
+
                   if (isCustom) {
                     return (
                       <div key={index} className="inline-flex items-center mx-2 relative">
                         <input
                           type="text"
-                          autoFocus 
+                          autoFocus
                           value={val}
                           placeholder="Type your own..."
                           onChange={(e) => setBlankAnswers({ ...blankAnswers, [part.id]: e.target.value })}
-                          className="bg-transparent border-b-2 border-orange-500 text-orange-500 outline-none text-center font-bold pb-1 transition-all w-48 shadow-sm focus:shadow-md"
+                          className="bg-transparent border-b-2 border-orange-500 text-orange-500 outline-none text-center font-simple pb-0 textbase transition-all w-48 shadow-sm focus:shadow-md"
                         />
 
                         {/* close input part */}
                         <button
                           onClick={() => {
-                            setCustomModes({ ...customModes, [part.id]: false }); // 关闭手写模式
-                            setBlankAnswers({ ...blankAnswers, [part.id]: '' }); // 清空刚刚手写的内容
+                            setCustomModes({ ...customModes, [part.id]: false }); // Close Custom mode
+                            setBlankAnswers({ ...blankAnswers, [part.id]: '' }); // Clear content
                           }}
                           className="absolute -right-6 top-1 text-gray-400 hover:text-gray-700 text-sm font-bold transition-transform hover:scale-110"
                           title="Back to options"
@@ -300,33 +350,33 @@ export default function SelfCompassion() {
                     );
                   }
 
-                  
+
                   return (
                     <div key={index} className="relative inline-block mx-2">
                       <select
                         value={val}
                         onChange={(e) => {
                           if (e.target.value === '__CUSTOM__') {
-                            // 如果用户选了“自定义”，开启手写模式，并清空当前值
+
                             setCustomModes({ ...customModes, [part.id]: true });
                             setBlankAnswers({ ...blankAnswers, [part.id]: '' });
                           } else {
-                            // 否则正常记录选项
+
                             setBlankAnswers({ ...blankAnswers, [part.id]: e.target.value });
                           }
                         }}
-                        className={`appearance-none bg-transparent border-b-2 outline-none cursor-pointer text-center font-bold pb-1 pr-6 transition-colors
+                        className={`appearance-none bg-transparent border-b-2 outline-none cursor-pointer text-center font-bold pb-0 text-base pr-6 transition-colors
                           ${val === '' ? 'border-blue-300 text-blue-300 border-dashed w-36' : 'border-blue-600 text-blue-600 border-solid'}`}
                       >
                         <option value="" disabled>{part.placeholder}</option>
                         {part.options.map((opt: string) => (
                           <option key={opt} value={opt}>{opt}</option>
                         ))}
-                        
+
                         <option value="__CUSTOM__">✏️ Write my own...</option>
                       </select>
-                      
-                      <div className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center text-blue-400 text-sm">
+
+                      <div className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center text-bvm-title text-sm">
                         ▼
                       </div>
                     </div>
@@ -343,7 +393,7 @@ export default function SelfCompassion() {
                         value={val}
                         placeholder={part.placeholder}
                         onChange={(e) => setBlankAnswers({ ...blankAnswers, [part.id]: e.target.value })}
-                        className={`bg-transparent border-b-2 outline-none text-center font-bold pb-1 transition-colors w-48
+                        className={`bg-transparent border-b-2 outline-none text-center font-bold pb-0 text-base transition-colors w-48
                           ${val === '' ? 'border-orange-300 text-orange-300 border-dashed placeholder-orange-300/50' : 'border-orange-500 text-orange-500 border-solid'}`}
                       />
                     </div>
@@ -356,7 +406,7 @@ export default function SelfCompassion() {
         )}
 
 
-        {/* ================= Part 3: Be Your Own Friend ================= */}
+        {/*  Part 3: Be Your Own Friend  */}
         {step === 8 && (
           <div className="w-full flex flex-col items-center justify-center min-h-[40vh] pb-12 animate-fade-in relative">
 
@@ -370,10 +420,10 @@ export default function SelfCompassion() {
               </button>
             )}
 
-            
+
             {!q8Choice && (
               <div className="w-full text-center animate-fade-in-up">
-                <span className="text-xs font-bold text-blue-500 uppercase mb-2 block">Step 8: Reflection</span>
+                <span className="text-xs font-bold text-blue-500 uppercase mb-2 block">Part 3: Be Your Own Friend</span>
                 <h2 className="text-2xl text-gray-800 mb-12 font-medium">
                   When you make a mistake, what do you usually say to yourself?
                 </h2>
@@ -391,7 +441,7 @@ export default function SelfCompassion() {
               </div>
             )}
 
-            {/* ====== Q8 Branch : Positive ====== */}
+            {/*  Q8 Branch : Positive  */}
             {q8Choice === 'positive' && (
               <div className="flex flex-col items-center w-full animate-fade-in-up">
                 <div className="text-7xl mb-6 animate-bounce">🌟</div>
@@ -401,7 +451,7 @@ export default function SelfCompassion() {
               </div>
             )}
 
-            {/* ====== Q8 Branch : Negative -> Q9 ====== */}
+            {/*  Q8 Branch : Negative -> Q9  */}
             {q8Choice === 'negative' && !q9Choice && (
               <div className="flex flex-col items-center w-full animate-fade-in-up">
                 <div className="bg-white/50 px-4 py-2 rounded-full mb-8 text-sm text-gray-600 font-medium shadow-sm">
@@ -421,7 +471,7 @@ export default function SelfCompassion() {
               </div>
             )}
 
-            {/* ====== Q9 Branch: Really ====== */}
+            {/*  Q9 Branch: Really  */}
             {q9Choice === 'yeah_probably' && !reallyChoice && (
               <div className="flex flex-col items-center w-full animate-fade-in-up">
                 <h2 className="text-4xl font-bold text-gray-800 mb-10">Really?</h2>
@@ -436,7 +486,7 @@ export default function SelfCompassion() {
               </div>
             )}
 
-            {/* ====== Final Q10 ====== */}
+            {/*  Final Q10  */}
             {(q9Choice === 'no_never' || reallyChoice !== null) && (
               <div className="flex flex-col items-center w-full animate-fade-in-up">
                 {/* for hardcore part */}
@@ -466,8 +516,8 @@ export default function SelfCompassion() {
 
 
 
-      {/* process bar and button */}
-      <div className="w-full max-w-md mx-auto pb-8 mt-8">
+      {/* Process bar and  NEXT Button */}
+      <div className="w-full max-w-md mx-auto pb-20 mt-10">
         <div className="flex items-center justify-between mb-4">
 
           {/* whole process monitor */}
@@ -488,11 +538,11 @@ export default function SelfCompassion() {
               else setIsCompleted(true);
             }}
             disabled={!isCurrentStepValid()}
-            className={`flex items-center gap-2 font-bold px-8 py-3 rounded-full transition-all duration-300 ${!isCurrentStepValid()
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : step === totalSteps
-                  ? 'bg-gray-800 text-white shadow-lg hover:bg-gray-700 hover:-translate-y-0.5'
-                  : 'bg-white text-gray-800 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5'
+            className={`flex items-center gap-2 font-bold px-5 py-3 rounded-full transition-all duration-300 ${!isCurrentStepValid()
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : step === totalSteps
+                ? 'bg-gray-800 text-white shadow-lg hover:bg-gray-700 hover:-translate-y-0.5'
+                : 'bg-white text-gray-800 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5'
               }`}
           >
             {step === totalSteps ? 'Finish ✨' : 'Next'} <span>{step === totalSteps ? '' : '≫'}</span>
