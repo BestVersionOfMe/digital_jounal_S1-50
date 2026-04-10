@@ -22,7 +22,7 @@ export default function Home() {
         const headingId = `${id}-heading`;
         const title =
           id === "self-compassion"
-            ? ""
+            ? "SELF COMPASSION"
             : id === "seeking-feedback"
               ? "SEEKING FEEDBACK"
               : id === "honesty"

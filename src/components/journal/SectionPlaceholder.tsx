@@ -1,7 +1,12 @@
-type Props = { title: string; headingId: string };
+type Props = {
+  title: string;
+  headingId: string;
+  /** Colored rim — match other journal glass cards */
+  rimClassName: string;
+};
 
-/** Section title + dashed empty panel until real content ships. */
-export function SectionPlaceholder({ title, headingId }: Props) {
+/** Section title + frosted placeholder panel until real content ships. */
+export function SectionPlaceholder({ title, headingId, rimClassName }: Props) {
   return (
     <div className="mx-auto max-w-[40rem] px-5 pb-20 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-28 sm:pt-10">
       <section aria-labelledby={headingId}>
@@ -12,7 +17,7 @@ export function SectionPlaceholder({ title, headingId }: Props) {
           {title}
         </h2>
         <div
-          className="mt-8 min-h-[10rem] rounded-2xl border border-dashed border-slate-300/70 bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
+          className={`mt-8 min-h-[10rem] rounded-[1.25rem] border-2 bg-white/30 shadow-[0_1px_0_rgba(43,106,158,0.06),inset_0_1px_0_rgba(255,255,255,0.45)] backdrop-blur-[2px] ${rimClassName}`}
           aria-hidden
         />
       </section>

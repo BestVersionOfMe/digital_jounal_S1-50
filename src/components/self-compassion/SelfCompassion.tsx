@@ -1,9 +1,73 @@
 "use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { JOURNAL_GLASS_BORDER, JOURNAL_GLASS_PANEL_BASE } from "@/lib/self-awareness";
+import {
+  clearSelfCompassionWorkshop,
+  defaultSelfCompassionWorkshop,
+  loadSelfCompassionWorkshop,
+  saveSelfCompassionWorkshop,
+  type SelfCompassionWorkshopSnapshot,
+} from "@/lib/self-compassion-storage";
+
+/** Align with Seeking Feedback / Honesty / Self Reflection body & fields */
+const scBody = "text-[0.9375rem] leading-[1.75] text-slate-600 sm:text-[1rem]";
+const scPrompt =
+  "text-[0.95rem] font-semibold leading-snug text-slate-800 sm:text-[1rem]";
+const scPartLabel =
+  "mb-2 block text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-slate-500 sm:text-[0.7rem]";
+const scTextarea =
+  "mt-3 w-full resize-y rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3 text-[0.9375rem] leading-relaxed text-slate-800 placeholder:text-slate-400 focus:border-bvm-title/50 focus:outline-none focus:ring-2 focus:ring-bvm-title/20";
+const scChip =
+  "rounded-full border border-slate-200/90 bg-white/70 px-3 py-1.5 text-[0.8125rem] font-medium text-slate-700 transition-colors hover:bg-white/95 focus:outline-none focus:ring-2 focus:ring-bvm-title/20";
+const scBtnPrimary =
+  "rounded-xl bg-bvm-title px-5 py-3 text-[0.95rem] font-semibold text-white shadow-sm transition-colors hover:bg-bvm-title/90 disabled:cursor-not-allowed disabled:opacity-40";
+const scBtnSecondary =
+  "rounded-xl border border-slate-200/80 bg-white/80 px-4 py-2.5 text-[0.9375rem] font-semibold text-slate-800 shadow-sm transition-colors hover:bg-white";
+
+/** Tighter insets + wider text block vs default glass (align with Seeking Feedback content / rim ratio) */
+const scCardInset = "px-4 py-6 sm:px-6 sm:py-7";
+
+const scResetBtn =
+  "shrink-0 rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-semibold text-slate-500 transition-colors hover:bg-slate-100/80 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-bvm-title/25";
+
+function snapshotFromState(
+  step: number,
+  isCompleted: boolean,
+  showReview: boolean,
+  q1Answer: string,
+  q2Answer: string,
+  q3Answer: string,
+  q4Answer: string,
+  q5Answer: string,
+  blankAnswers: Record<string, string>,
+  customModes: Record<string, boolean>,
+  q8Choice: string | null,
+  q9Choice: string | null,
+  reallyChoice: string | null,
+  q10Answer: string,
+): SelfCompassionWorkshopSnapshot {
+  return {
+    step,
+    isCompleted,
+    showReview,
+    q1Answer,
+    q2Answer,
+    q3Answer,
+    q4Answer,
+    q5Answer,
+    blankAnswers: { ...blankAnswers },
+    customModes: { ...customModes },
+    q8Choice,
+    q9Choice,
+    reallyChoice,
+    q10Answer,
+  };
+}
 
 export default function SelfCompassion() {
+  const [hydrated, setHydrated] = useState(false);
 
   const [step, setStep] = useState(1);
   const totalSteps = 8;
@@ -13,7 +77,6 @@ export default function SelfCompassion() {
 
   // Review
   const [showReview, setShowReview] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
 
   // Part 1: Q1 - Q5
   const [q1Answer, setQ1Answer] = useState('');
@@ -31,7 +94,80 @@ export default function SelfCompassion() {
   const [q8Choice, setQ8Choice] = useState<string | null>(null);
   const [q9Choice, setQ9Choice] = useState<string | null>(null);
   const [reallyChoice, setReallyChoice] = useState<string | null>(null);
-  const [q10Answer, setQ10Answer] = useState('');
+  const [q10Answer, setQ10Answer] = useState("");
+
+  const applySnapshot = useCallback((s: SelfCompassionWorkshopSnapshot) => {
+    setStep(s.step);
+    setIsCompleted(s.isCompleted);
+    setShowReview(s.showReview);
+    setQ1Answer(s.q1Answer);
+    setQ2Answer(s.q2Answer);
+    setQ3Answer(s.q3Answer);
+    setQ4Answer(s.q4Answer);
+    setQ5Answer(s.q5Answer);
+    setBlankAnswers(s.blankAnswers);
+    setCustomModes(s.customModes);
+    setQ8Choice(s.q8Choice);
+    setQ9Choice(s.q9Choice);
+    setReallyChoice(s.reallyChoice);
+    setQ10Answer(s.q10Answer);
+  }, []);
+
+  useEffect(() => {
+    const loaded = loadSelfCompassionWorkshop();
+    if (loaded) applySnapshot(loaded);
+    setHydrated(true);
+  }, [applySnapshot]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    saveSelfCompassionWorkshop(
+      snapshotFromState(
+        step,
+        isCompleted,
+        showReview,
+        q1Answer,
+        q2Answer,
+        q3Answer,
+        q4Answer,
+        q5Answer,
+        blankAnswers,
+        customModes,
+        q8Choice,
+        q9Choice,
+        reallyChoice,
+        q10Answer,
+      ),
+    );
+  }, [
+    hydrated,
+    step,
+    isCompleted,
+    showReview,
+    q1Answer,
+    q2Answer,
+    q3Answer,
+    q4Answer,
+    q5Answer,
+    blankAnswers,
+    customModes,
+    q8Choice,
+    q9Choice,
+    reallyChoice,
+    q10Answer,
+  ]);
+
+  const resetEntireWorkshop = useCallback(() => {
+    if (
+      !window.confirm(
+        "Clear all answers in Self Compassion and start again from step 1? Your saved progress will be removed until you fill it in again.",
+      )
+    ) {
+      return;
+    }
+    clearSelfCompassionWorkshop();
+    applySnapshot(defaultSelfCompassionWorkshop());
+  }, [applySnapshot]);
 
   // === 💡 Dictionary Q1-5 promptchips ===
   const promptChipsConfig = {
@@ -139,24 +275,22 @@ export default function SelfCompassion() {
   // dynamic background and process bar color
   // change at the Q8
 
-  const getBackgroundColor = () => {
-    if (isExiting) return 'rgba(43, 106, 158, 0.12)';
-
-    if (step === 8 && q8Choice === 'positive') return 'bg-yellow-50';
-    if (step === 8 && q8Choice === 'negative') return 'bg-orange-50';
-
-    return 'rgba(43, 106, 158, 0.12)';
+  /** Optional tint over the glass panel on Part 3 branches (still reads as frosted). */
+  const getGlassTone = () => {
+    if (step === 8 && q8Choice === "positive") return "bg-amber-50/50";
+    if (step === 8 && q8Choice === "negative") return "bg-orange-50/50";
+    return "";
   };
 
 
   const getProgressTheme = () => {
-    if (step >= 8 && q8Choice === 'positive') {
-      return { active: 'bg-yellow-500', inactive: 'bg-yellow-200', current: 'bg-yellow-600' };
+    if (step >= 8 && q8Choice === "positive") {
+      return { active: "bg-amber-400/80", inactive: "bg-amber-100", current: "bg-amber-600" };
     }
-    if (step >= 8 && q8Choice === 'negative') {
-      return { active: 'bg-orange-500', inactive: 'bg-orange-200', current: 'bg-orange-600' };
+    if (step >= 8 && q8Choice === "negative") {
+      return { active: "bg-orange-400/80", inactive: "bg-orange-100", current: "bg-orange-600" };
     }
-    return { active: 'bg-blue-500', inactive: 'bg-blue-200', current: 'bg-blue-600' };
+    return { active: "bg-bvm-title/50", inactive: "bg-slate-200", current: "bg-bvm-title" };
   };
 
 
@@ -189,108 +323,164 @@ export default function SelfCompassion() {
 
   if (isCompleted) {
     return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-1000 ${getBackgroundColor()}`}>
-        <div className="text-center animate-fade-in-up w-full max-w-lg">
-          <div className="text-8xl mb-8 animate-bounce">✨</div>
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">You did it!</h2>
-          <p className="text-xl text-gray-600 leading-relaxed mb-8 font-medium">
-            {"Thank you for taking the time to reflect. Remember, practicing self-compassion is a journey, and you've just taken a beautiful step forward."}
+      <div className="mx-auto flex max-w-[40rem] flex-col items-center px-5 pb-16 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
+        <section
+          className={`w-full ${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.selfCompassion} ${scCardInset}`}
+        >
+        <div className="flex w-full items-center justify-end">
+          <button
+            type="button"
+            className={scResetBtn}
+            onClick={resetEntireWorkshop}
+            aria-label="Reset Self Compassion workshop and clear saved answers"
+          >
+            Reset
+          </button>
+        </div>
+        <div className="w-full animate-fade-in-up text-center">
+          <div className="mb-6 text-5xl sm:text-6xl" aria-hidden>
+            ✨
+          </div>
+          <h2 className="font-display text-[1.125rem] font-semibold text-slate-900 sm:text-[1.25rem]">
+            You did it!
+          </h2>
+          <p className={`mt-3 w-full ${scBody}`}>
+            {
+              "Thank you for taking the time to reflect. Remember, practicing self-compassion is a journey, and you've just taken a beautiful step forward."
+            }
           </p>
 
           {/* --- Review --- */}
           {showReview && (
-            <div className="mb-8 p-6 bg-white/60 backdrop-blur-sm rounded-2xl text-left space-y-4 border border-blue-100 shadow-sm max-h-[50vh] overflow-y-auto animate-fade-in">
-              <h3 className="text-xl font-bold text-gray-800 border-b-2 border-blue-200 pb-2">My Reflection Summary:</h3>
+            <div className="mb-8 mt-8 max-h-[50vh] space-y-3 overflow-y-auto rounded-xl border border-slate-200/80 bg-white/50 p-5 text-left animate-fade-in">
+              <h3 className="border-b border-slate-200/80 pb-2 font-display text-[0.95rem] font-semibold text-slate-800">
+                My Reflection Summary
+              </h3>
 
-              {q1Answer && <p><strong>{"1. I like about myself:"}</strong> {q1Answer}</p>}
-              {q2Answer && <p><strong>{"2. I'm good at:"}</strong> {q2Answer}</p>}
-              {q3Answer && <p><strong>{"3. I worked hard on:"}</strong> {q3Answer}</p>}
-              {q4Answer && <p><strong>{"4. Comes easily to me:"}</strong> {q4Answer}</p>}
-              {q5Answer && <p><strong>{"5. I'm proud of:"}</strong> {q5Answer}</p>}
-
-              {blankAnswers['q6_emotion'] && (
-                <p><strong>6. How I treat others:</strong> {"I am usually"} {blankAnswers['q6_emotion']}, especially when {blankAnswers['q6_action']}{"."}</p>
+              {q1Answer && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">{"1. I like about myself:"}</strong> {q1Answer}
+                </p>
               )}
-              {blankAnswers['q7_people'] && (
-                <p><strong>{"7. Through others' eyes:"}</strong> {"My "}{blankAnswers['q7_people']} notice I am good at {blankAnswers['q7_method']} {blankAnswers['q7_example']}{"."}</p>
+              {q2Answer && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">{"2. I'm good at:"}</strong> {q2Answer}
+                </p>
+              )}
+              {q3Answer && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">{"3. I worked hard on:"}</strong> {q3Answer}
+                </p>
+              )}
+              {q4Answer && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">{"4. Comes easily to me:"}</strong> {q4Answer}
+                </p>
+              )}
+              {q5Answer && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">{"5. I'm proud of:"}</strong> {q5Answer}
+                </p>
               )}
 
-              {q8Choice && <p><strong>8. Reaction to mistakes:</strong> {q8Choice === 'positive' ? 'Just a silly mistake.' : 'I suck at this!'}</p>}
-              {q10Answer && <p><strong>Kinder message:</strong> {q10Answer}</p>}
+              {blankAnswers["q6_emotion"] && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">6. How I treat others:</strong> {"I am usually"}{" "}
+                  {blankAnswers["q6_emotion"]}, especially when {blankAnswers["q6_action"]}
+                  {"."}
+                </p>
+              )}
+              {blankAnswers["q7_people"] && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">{"7. Through others' eyes:"}</strong> {"My "}
+                  {blankAnswers["q7_people"]} notice I am good at {blankAnswers["q7_method"]} {blankAnswers["q7_example"]}
+                  {"."}
+                </p>
+              )}
+
+              {q8Choice && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">8. Reaction to mistakes:</strong>{" "}
+                  {q8Choice === "positive" ? "Just a silly mistake." : "I suck at this!"}
+                </p>
+              )}
+              {q10Answer && (
+                <p className={scBody}>
+                  <strong className="font-semibold text-slate-800">Kinder message:</strong> {q10Answer}
+                </p>
+              )}
             </div>
           )}
 
-          <div className="flex flex-col gap-5 items-center">
-            {/* Button 1：show/hide answers */}
+          <div className="mt-8 flex flex-col items-center gap-4">
             <button
+              type="button"
               onClick={() => setShowReview(!showReview)}
-              className="text-gray-500 hover:text-gray-800 font-bold underline decoration-2 underline-offset-4 transition-colors"
+              className="text-[0.9375rem] font-semibold text-bvm-title underline decoration-2 underline-offset-4 transition-colors hover:text-bvm-title/80"
             >
               {showReview ? "Hide my answers" : "Check my answers"}
             </button>
 
-            {/* Button 2：Jump to Seeking-Feedback */}
-            <Link href="/#seeking-feedback">
-              <button
-                onClick={() => setIsExiting(true)}
-                className="px-10 py-4 rounded-full font-bold transition-all duration-300 bg-gray-800 text-white shadow-xl hover:bg-gray-700 hover:-translate-y-1 text-lg flex items-center gap-2">
-                Go to next part <span>→</span>
-              </button>
+            <Link href="/#seeking-feedback" className={`${scBtnPrimary} inline-flex items-center gap-2 px-8`}>
+              Go to next part <span aria-hidden>→</span>
             </Link>
           </div>
         </div>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen flex flex-col justify-between p-6 transition-colors duration-700 ${getBackgroundColor()}`}>
-
+    <div className="mx-auto max-w-[40rem] px-5 pb-16 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
+      <section
+        className={`${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.selfCompassion} ${scCardInset} transition-colors duration-700 ${getGlassTone()}`}
+      >
       {/* Top bar */}
-      <div className="flex justify-between items-center w-full max-w-md mx-auto pt-20">
+      <div className="flex w-full items-center justify-between gap-3 pt-0">
         <button
+          type="button"
           onClick={() => step > 1 && setStep(step - 1)}
-          className={`font-medium transition-opacity ${step === 1 ? 'opacity-0 cursor-default' : 'text-gray-500 hover:text-gray-800'}`}
+          className={`min-w-[4.5rem] text-left text-[0.875rem] font-medium transition-opacity ${step === 1 ? "pointer-events-none opacity-0" : "text-slate-500 hover:text-slate-800"}`}
         >
           ← Back
+        </button>
+        <button
+          type="button"
+          className={scResetBtn}
+          onClick={resetEntireWorkshop}
+          aria-label="Reset Self Compassion workshop and clear saved answers"
+        >
+          Reset
         </button>
       </div>
 
 
-      {/* Main Body*/}
-      <div className="flex-grow flex flex-col items-center justify-center w-full max-w-md mx-auto mt-4">
-
-        {/* Title */}
-        <div className="w-full text-center mb-10 animate-fade-in">
-          <h1 className="font-display text-[1.25rem] font-semibold tracking-[0.04em] text-bvm-title sm:text-[1.375rem] uppercase">
-            Self Compassion
-          </h1>
-        </div>
+      {/* Main Body — section title lives on the page (outside this card), same as other blocks */}
+      <div className="mt-2 flex w-full flex-col items-stretch">
 
         {/*  Part 1 : Discovering Me   */}
         {step >= 1 && step <= 5 && (
           <div className="w-full animate-fade-in">
-            <span className="text-xs font-bold text-bvm-title uppercase mb-2 block">Part 1: Discover Me</span>
-            <h2 className="text-2xl text-gray-800 mb-6 font-medium">
-
-              {questionsConfig[step as keyof typeof questionsConfig]}
-            </h2>
+            <span className={scPartLabel}>Part 1: Discover Me</span>
+            <p className={`${scPrompt} mb-4`}>{questionsConfig[step as keyof typeof questionsConfig]}</p>
             <textarea
-              className="w-full p-5 rounded-2xl bg-white shadow-md border border-blue-50 hover:shadow-lg focus:shadow-xl focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all duration-300 resize-none h-36 text-gray-700 text-lg"
+              className={`${scTextarea} min-h-[9rem]`}
               placeholder="Type your answer here..."
               value={getCurrentAnswer()}
               onChange={(e) => handleAnswerChange(e.target.value)}
-            ></textarea>
+              rows={5}
+            />
 
             <div className="mt-6">
-              <p className="text-sm text-gray-500 mb-3 font-medium">💡 Need some inspiration?</p>
+              <p className="mb-3 text-[0.8125rem] font-medium text-slate-600">Need some inspiration?</p>
               <div className="flex flex-wrap gap-2">
-
                 {promptChipsConfig[step as keyof typeof promptChipsConfig]?.map((chip) => (
                   <button
                     key={chip}
+                    type="button"
                     onClick={() => handleChipClick(chip)}
-                    className="bg-blue-200/50 hover:bg-blue-300 text-blue-800 text-sm px-4 py-2 rounded-full transition-colors font-medium"
+                    className={scChip}
                   >
                     {chip}
                   </button>
@@ -303,12 +493,12 @@ export default function SelfCompassion() {
         {/*  Part 2 : Through Other's eyes  */}
         {(step === 6 || step === 7) && fillInBlanksConfig[step] && (
           <div className="w-full animate-fade-in">
-            <span className="text-xs font-bold text-bvm-title uppercase mb-2 block">{"Part 2: Through Others' Eyes"}</span>
-            <h2 className="text-2xl text-gray-800 mb-6 font-medium">
-              {fillInBlanksConfig[step].title}
-            </h2>
+            <span className={scPartLabel}>{"Part 2: Through Others' Eyes"}</span>
+            <p className={`${scPrompt} mb-4`}>{fillInBlanksConfig[step].title}</p>
 
-            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-white leading-[3rem] text-l text-gray-700">
+            <div
+              className={`rounded-xl border border-slate-200/80 bg-white/50 p-5 text-[0.9375rem] leading-[2.25rem] text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] sm:p-6 sm:leading-[2.5rem]`}
+            >
 
 
               {fillInBlanksConfig[step].parts.map((part: any, index: number) => {
@@ -332,16 +522,16 @@ export default function SelfCompassion() {
                           value={val}
                           placeholder="Type your own..."
                           onChange={(e) => setBlankAnswers({ ...blankAnswers, [part.id]: e.target.value })}
-                          className="bg-transparent border-b-2 border-orange-500 text-orange-500 outline-none text-center font-simple pb-0 textbase transition-all w-48 shadow-sm focus:shadow-md"
+                          className="w-48 border-b-2 border-bvm-title/60 bg-transparent pb-0 text-center text-[0.9375rem] font-medium text-slate-800 outline-none transition-colors focus:border-bvm-title"
                         />
 
-                        {/* close input part */}
                         <button
+                          type="button"
                           onClick={() => {
-                            setCustomModes({ ...customModes, [part.id]: false }); // Close Custom mode
-                            setBlankAnswers({ ...blankAnswers, [part.id]: '' }); // Clear content
+                            setCustomModes({ ...customModes, [part.id]: false });
+                            setBlankAnswers({ ...blankAnswers, [part.id]: "" });
                           }}
-                          className="absolute -right-6 top-1 text-gray-400 hover:text-gray-700 text-sm font-bold transition-transform hover:scale-110"
+                          className="absolute -right-6 top-1 text-[0.8125rem] font-semibold text-slate-400 transition-colors hover:text-slate-700"
                           title="Back to options"
                         >
                           ✕
@@ -352,31 +542,36 @@ export default function SelfCompassion() {
 
 
                   return (
-                    <div key={index} className="relative inline-block mx-2">
+                    <div key={index} className="relative mx-2 inline-block">
                       <select
                         value={val}
                         onChange={(e) => {
-                          if (e.target.value === '__CUSTOM__') {
-
+                          if (e.target.value === "__CUSTOM__") {
                             setCustomModes({ ...customModes, [part.id]: true });
-                            setBlankAnswers({ ...blankAnswers, [part.id]: '' });
+                            setBlankAnswers({ ...blankAnswers, [part.id]: "" });
                           } else {
-
                             setBlankAnswers({ ...blankAnswers, [part.id]: e.target.value });
                           }
                         }}
-                        className={`appearance-none bg-transparent border-b-2 outline-none cursor-pointer text-center font-bold pb-0 text-base pr-6 transition-colors
-                          ${val === '' ? 'border-blue-300 text-blue-300 border-dashed w-36' : 'border-blue-600 text-blue-600 border-solid'}`}
+                        className={`w-36 cursor-pointer appearance-none border-b-2 bg-transparent pb-0 pr-6 text-center text-[0.9375rem] font-semibold outline-none transition-colors focus:border-bvm-title ${
+                          val === ""
+                            ? "border-dashed border-slate-300 text-slate-400"
+                            : "border-solid border-bvm-title/70 text-slate-800"
+                        }`}
                       >
-                        <option value="" disabled>{part.placeholder}</option>
+                        <option value="" disabled>
+                          {part.placeholder}
+                        </option>
                         {part.options.map((opt: string) => (
-                          <option key={opt} value={opt}>{opt}</option>
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
                         ))}
 
-                        <option value="__CUSTOM__">✏️ Write my own...</option>
+                        <option value="__CUSTOM__">Write my own…</option>
                       </select>
 
-                      <div className="pointer-events-none absolute right-0 top-0 bottom-0 flex items-center text-bvm-title text-sm">
+                      <div className="pointer-events-none absolute bottom-0 right-0 top-0 flex items-center text-[0.75rem] text-slate-500">
                         ▼
                       </div>
                     </div>
@@ -387,14 +582,17 @@ export default function SelfCompassion() {
                 if (part.type === 'input') {
                   const val = blankAnswers[part.id] || '';
                   return (
-                    <div key={index} className="inline-block mx-2">
+                    <div key={index} className="mx-2 inline-block">
                       <input
                         type="text"
                         value={val}
                         placeholder={part.placeholder}
                         onChange={(e) => setBlankAnswers({ ...blankAnswers, [part.id]: e.target.value })}
-                        className={`bg-transparent border-b-2 outline-none text-center font-bold pb-0 text-base transition-colors w-48
-                          ${val === '' ? 'border-orange-300 text-orange-300 border-dashed placeholder-orange-300/50' : 'border-orange-500 text-orange-500 border-solid'}`}
+                        className={`w-48 border-b-2 bg-transparent pb-0 text-center text-[0.9375rem] font-semibold outline-none transition-colors focus:border-bvm-title ${
+                          val === ""
+                            ? "border-dashed border-slate-300 text-slate-400 placeholder:text-slate-400"
+                            : "border-solid border-bvm-title/70 text-slate-800"
+                        }`}
                       />
                     </div>
                   );
@@ -408,104 +606,123 @@ export default function SelfCompassion() {
 
         {/*  Part 3: Be Your Own Friend  */}
         {step === 8 && (
-          <div className="w-full flex flex-col items-center justify-center min-h-[40vh] pb-12 animate-fade-in relative">
+          <div className="relative flex w-full animate-fade-in flex-col items-center justify-center pb-6 pt-1">
 
             {/* Reset button  */}
             {q8Choice && (
               <button
-                onClick={() => { setQ8Choice(null); setQ9Choice(null); setReallyChoice(null); setQ10Answer(''); }}
-                className="absolute -top-12 right-0 text-sm font-medium text-gray-400 hover:text-gray-700 transition-colors"
+                type="button"
+                onClick={() => {
+                  setQ8Choice(null);
+                  setQ9Choice(null);
+                  setReallyChoice(null);
+                  setQ10Answer("");
+                }}
+                className="absolute right-0 top-0 text-[0.8125rem] font-medium text-slate-500 transition-colors hover:text-slate-800 sm:right-0.5"
               >
                 ↺ Reset choice
               </button>
             )}
 
-
             {!q8Choice && (
-              <div className="w-full text-center animate-fade-in-up">
-                <span className="text-xs font-bold text-blue-500 uppercase mb-2 block">Part 3: Be Your Own Friend</span>
-                <h2 className="text-2xl text-gray-800 mb-12 font-medium">
+              <div className="w-full animate-fade-in-up text-center">
+                <span className={scPartLabel}>Part 3: Be Your Own Friend</span>
+                <p className={`${scPrompt} mb-10 mt-1`}>
                   When you make a mistake, what do you usually say to yourself?
-                </h2>
-                <div className="flex justify-around items-end">
-                  <div className="cursor-pointer transition-all duration-300 opacity-80 hover:scale-110 hover:opacity-100" onClick={() => setQ8Choice('negative')}>
-                    <div className="text-7xl mb-4">😞</div>
-                    <p className="font-bold text-gray-600">I suck at this!</p>
-                  </div>
-                  <div className="text-gray-400 font-medium mb-6">Or...</div>
-                  <div className="cursor-pointer transition-all duration-300 opacity-80 hover:scale-110 hover:opacity-100" onClick={() => setQ8Choice('positive')}>
-                    <div className="text-7xl mb-4">🤪</div>
-                    <p className="font-bold text-gray-600">Just a silly mistake.</p>
-                  </div>
+                </p>
+                <div className="flex items-end justify-around gap-2">
+                  <button
+                    type="button"
+                    className="flex flex-col items-center rounded-xl p-2 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-bvm-title/30"
+                    onClick={() => setQ8Choice("negative")}
+                  >
+                    <span className="mb-3 text-6xl leading-none sm:text-7xl" aria-hidden>
+                      😞
+                    </span>
+                    <span className="text-[0.875rem] font-semibold text-slate-700">I suck at this!</span>
+                  </button>
+                  <span className="mb-8 text-[0.8125rem] font-medium text-slate-500">Or...</span>
+                  <button
+                    type="button"
+                    className="flex flex-col items-center rounded-xl p-2 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-bvm-title/30"
+                    onClick={() => setQ8Choice("positive")}
+                  >
+                    <span className="mb-3 text-6xl leading-none sm:text-7xl" aria-hidden>
+                      🤪
+                    </span>
+                    <span className="text-[0.875rem] font-semibold text-slate-700">Just a silly mistake.</span>
+                  </button>
                 </div>
               </div>
             )}
 
-            {/*  Q8 Branch : Positive  */}
-            {q8Choice === 'positive' && (
-              <div className="flex flex-col items-center w-full animate-fade-in-up">
-                <div className="text-7xl mb-6 animate-bounce">🌟</div>
-                <p className="text-2xl text-green-700 leading-relaxed px-4 font-bold text-center">
-                  {"Not beating yourself up is exactly what Self-Compassion is all about. You're already treating yourself like a good friend."}
+            {q8Choice === "positive" && (
+              <div className="flex w-full flex-col items-center animate-fade-in-up">
+                <div className="mb-4 text-6xl sm:text-7xl" aria-hidden>
+                  🌟
+                </div>
+                <p className={`w-full text-center ${scBody} text-slate-700`}>
+                  {
+                    "Not beating yourself up is exactly what Self-Compassion is all about. You're already treating yourself like a good friend."
+                  }
                 </p>
               </div>
             )}
 
-            {/*  Q8 Branch : Negative -> Q9  */}
-            {q8Choice === 'negative' && !q9Choice && (
-              <div className="flex flex-col items-center w-full animate-fade-in-up">
-                <div className="bg-white/50 px-4 py-2 rounded-full mb-8 text-sm text-gray-600 font-medium shadow-sm">
+            {q8Choice === "negative" && !q9Choice && (
+              <div className="flex w-full flex-col items-center animate-fade-in-up">
+                <div className="mb-6 rounded-full border border-slate-200/80 bg-white/60 px-4 py-2 text-[0.8125rem] font-medium text-slate-600 shadow-sm">
                   {"You just said:"} <span className="italic">{"'I suck at this!'"}</span>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">
-                  Would you say that to a friend?
-                </h2>
-                <div className="flex gap-4">
-                  <button onClick={() => setQ9Choice('no_never')} className="px-8 py-4 rounded-full font-bold transition-all duration-300 bg-white text-gray-700 border-2 border-transparent hover:border-gray-800 shadow-sm hover:shadow-md text-lg">
+                <p className={`${scPrompt} mb-8 text-center`}>Would you say that to a friend?</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <button type="button" onClick={() => setQ9Choice("no_never")} className={scBtnSecondary}>
                     No, Never
                   </button>
-                  <button onClick={() => setQ9Choice('yeah_probably')} className="px-8 py-4 rounded-full font-bold transition-all duration-300 bg-white text-gray-700 border-2 border-transparent hover:border-gray-800 shadow-sm hover:shadow-md text-lg">
+                  <button type="button" onClick={() => setQ9Choice("yeah_probably")} className={scBtnSecondary}>
                     Yeah, probably 🤷
                   </button>
                 </div>
               </div>
             )}
 
-            {/*  Q9 Branch: Really  */}
-            {q9Choice === 'yeah_probably' && !reallyChoice && (
-              <div className="flex flex-col items-center w-full animate-fade-in-up">
-                <h2 className="text-4xl font-bold text-gray-800 mb-10">Really?</h2>
-                <div className="flex gap-4">
-                  <button onClick={() => setReallyChoice('no')} className="px-8 py-4 rounded-full font-bold transition-all duration-300 bg-white text-gray-700 border-2 border-transparent hover:border-gray-800 shadow-sm hover:shadow-md text-lg">
+            {q9Choice === "yeah_probably" && !reallyChoice && (
+              <div className="flex w-full flex-col items-center animate-fade-in-up">
+                <p className={`${scPrompt} mb-8`}>Really?</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <button type="button" onClick={() => setReallyChoice("no")} className={scBtnSecondary}>
                     No
                   </button>
-                  <button onClick={() => setReallyChoice('yeah_hardcore')} className="px-8 py-4 rounded-full font-bold transition-all duration-300 bg-white text-orange-600 border-2 border-transparent hover:border-orange-500 shadow-sm hover:shadow-md text-lg">
+                  <button
+                    type="button"
+                    onClick={() => setReallyChoice("yeah_hardcore")}
+                    className={`${scBtnSecondary} text-orange-800 hover:border-orange-200 hover:bg-orange-50/80`}
+                  >
                     {"Yeah, I'm hardcore"}
                   </button>
                 </div>
               </div>
             )}
 
-            {/*  Final Q10  */}
-            {(q9Choice === 'no_never' || reallyChoice !== null) && (
-              <div className="flex flex-col items-center w-full animate-fade-in-up">
-                {/* for hardcore part */}
-                {reallyChoice === 'yeah_hardcore' && (
-                  <div className="w-full text-center mb-6">
-                    <p className="text-orange-700 font-bold bg-orange-100 p-4 rounded-2xl inline-block">
+            {(q9Choice === "no_never" || reallyChoice !== null) && (
+              <div className="flex w-full flex-col items-center animate-fade-in-up">
+                {reallyChoice === "yeah_hardcore" && (
+                  <div className="mb-6 w-full text-center">
+                    <p className="inline-block rounded-xl border border-slate-200/80 bg-slate-100/90 px-4 py-3 text-[0.9375rem] font-medium text-slate-700">
                       Fair enough! Sometimes friends joke like that. But...
                     </p>
                   </div>
                 )}
 
-                <p className="text-left w-full text-gray-800 mb-4 font-bold text-xl">
+                <label className={`mb-3 block w-full text-left ${scPrompt}`}>
                   {"What's something you could say to yourself instead?"}
-                </p>
+                </label>
                 <textarea
-                  className="w-full p-6 rounded-2xl bg-white shadow-md border border-blue-50 hover:shadow-lg focus:shadow-xl focus:ring-2 focus:ring-orange-400 focus:outline-none transition-all duration-300 resize-none h-40 text-gray-700 text-lg"
+                  className={`${scTextarea} min-h-[10rem]`}
                   placeholder="Type a kinder message..."
                   value={q10Answer}
                   onChange={(e) => setQ10Answer(e.target.value)}
+                  rows={5}
                 />
               </div>
             )}
@@ -517,7 +734,7 @@ export default function SelfCompassion() {
 
 
       {/* Process bar and  NEXT Button */}
-      <div className="w-full max-w-md mx-auto pb-20 mt-10">
+      <div className="mt-8 w-full">
         <div className="flex items-center justify-between mb-4">
 
           {/* whole process monitor */}
@@ -533,22 +750,26 @@ export default function SelfCompassion() {
           </div>
 
           <button
+            type="button"
             onClick={() => {
               if (step < totalSteps) setStep(step + 1);
               else setIsCompleted(true);
             }}
             disabled={!isCurrentStepValid()}
-            className={`flex items-center gap-2 font-bold px-5 py-3 rounded-full transition-all duration-300 ${!isCurrentStepValid()
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : step === totalSteps
-                ? 'bg-gray-800 text-white shadow-lg hover:bg-gray-700 hover:-translate-y-0.5'
-                : 'bg-white text-gray-800 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5'
-              }`}
+            className={`inline-flex items-center gap-2 px-5 py-3 text-[0.95rem] font-semibold transition-colors ${
+              !isCurrentStepValid()
+                ? "cursor-not-allowed rounded-xl bg-slate-200 text-slate-400"
+                : step === totalSteps
+                  ? `${scBtnPrimary} rounded-xl`
+                  : `${scBtnSecondary} rounded-xl`
+            }`}
           >
-            {step === totalSteps ? 'Finish ✨' : 'Next'} <span>{step === totalSteps ? '' : '≫'}</span>
+            {step === totalSteps ? "Finish" : "Next"}
+            {step === totalSteps ? <span aria-hidden>✨</span> : <span aria-hidden>≫</span>}
           </button>
         </div>
       </div>
+      </section>
     </div>
   );
 }

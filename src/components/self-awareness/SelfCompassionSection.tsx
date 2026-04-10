@@ -2,7 +2,11 @@
 
 import { useCallback, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { COMPASSION_PROMPTS, compassionSuggestionToAnswer } from "@/lib/self-awareness";
+import {
+  COMPASSION_PROMPTS,
+  compassionSuggestionToAnswer,
+  JOURNAL_GLASS_BORDER,
+} from "@/lib/self-awareness";
 import { useJournalStorage } from "@/hooks/useJournalStorage";
 
 const slideVariants = {
@@ -146,7 +150,7 @@ export function SelfCompassionSection() {
         </p>
 
         <div
-          className="overflow-hidden rounded-[1.35rem] border border-white/70 bg-white/90 shadow-[0_8px_30px_rgba(80,70,120,0.12),inset_0_1px_0_rgba(255,255,255,0.95)]"
+          className={`overflow-hidden rounded-[1.35rem] border-2 bg-white/90 shadow-[0_8px_30px_rgba(80,70,120,0.12),inset_0_1px_0_rgba(255,255,255,0.95)] ${JOURNAL_GLASS_BORDER.selfCompassion}`}
           style={{ perspective: "1000px" }}
         >
           <div className="border-b border-slate-200/40 px-4 py-3 sm:px-5">
