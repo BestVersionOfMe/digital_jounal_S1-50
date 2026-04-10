@@ -1,5 +1,6 @@
+import { SelfAwarenessHeroBanner } from "@/components/self-awareness/SelfAwarenessHeroBanner";
 import { SelfAwarenessIntroAndSkills } from "@/components/self-awareness/SelfAwarenessIntroAndSkills";
-import  SelfCompassion  from "@/components/self-compassion/SelfCompassion";
+import SelfCompassion from "@/components/self-compassion/SelfCompassion";
 import { EmotionalAwarenessSection } from "@/components/self-awareness/EmotionalAwarenessSection";
 import { HonestySection } from "@/components/self-awareness/HonestySection";
 import { JournalPageFooter } from "@/components/self-awareness/JournalPageFooter";
@@ -15,6 +16,7 @@ const sectionScrollClass = "scroll-mt-20 sm:scroll-mt-24";
 export default function Home() {
   return (
     <main>
+      <SelfAwarenessHeroBanner />
       <JournalNav />
       <SelfAwarenessIntroAndSkills />
 

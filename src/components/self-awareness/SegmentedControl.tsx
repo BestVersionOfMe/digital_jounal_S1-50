@@ -24,7 +24,6 @@ export function SegmentedControl({ value, onChange, ariaLabelledBy }: Props) {
             type="button"
             role="radio"
             aria-checked={selected}
-            aria-pressed={selected}
             onClick={() => onChange(n)}
             className={[
               "min-h-[2.75rem] flex-1 border-r border-[rgba(30,60,90,0.14)] px-1 py-[0.45rem] text-[0.95rem] font-semibold text-[#1a1a1a] transition-[filter] last:border-r-0 hover:brightness-[1.03] active:brightness-[0.97]",

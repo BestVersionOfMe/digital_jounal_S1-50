@@ -193,6 +193,16 @@ function parseStored(raw: string | null): JournalState {
     if (typeof data.honestyGivingFeedbackText === "string")
       honestyGivingFeedbackText = data.honestyGivingFeedbackText;
 
+    let seekingFeedbackSubmitted = base.seekingFeedbackSubmitted;
+    if (typeof data.seekingFeedbackSubmitted === "boolean") {
+      seekingFeedbackSubmitted = data.seekingFeedbackSubmitted;
+    }
+
+    let honestyGivingFeedbackSubmitted = base.honestyGivingFeedbackSubmitted;
+    if (typeof data.honestyGivingFeedbackSubmitted === "boolean") {
+      honestyGivingFeedbackSubmitted = data.honestyGivingFeedbackSubmitted;
+    }
+
     return {
       ratings,
       compassion,
@@ -204,8 +214,10 @@ function parseStored(raw: string | null): JournalState {
       reflectionEmojiIndex,
       reflectionWeeks,
       seekingFeedbackText,
+      seekingFeedbackSubmitted,
       honestyGivingFeedbackText,
-    };
+      honestyGivingFeedbackSubmitted,
+    } satisfies JournalState;
   } catch {
     return base;
   }
@@ -363,6 +375,21 @@ export function useJournalStorage() {
     });
   }, []);
 
+  const removeReflectionWeek = useCallback((weekId: string) => {
+    setState((prev) => {
+      const filtered = prev.reflectionWeeks.filter((w) => w.id !== weekId);
+      const reflectionWeeks = filtered.map((w, i) => ({
+        ...w,
+        label: weekLabelFromIndex(i),
+      }));
+      const next = { ...prev, reflectionWeeks };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
+  }, []);
+
   const updateReflectionMeasure = useCallback(
     (
       id: string,
@@ -464,6 +491,26 @@ export function useJournalStorage() {
     });
   }, []);
 
+  const setSeekingFeedbackSubmitted = useCallback((submitted: boolean) => {
+    setState((prev) => {
+      const updated = { ...prev, seekingFeedbackSubmitted: submitted };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
+  const setHonestyGivingFeedbackSubmitted = useCallback((submitted: boolean) => {
+    setState((prev) => {
+      const updated = { ...prev, honestyGivingFeedbackSubmitted: submitted };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+  }, []);
+
   return {
     state,
     commit,
@@ -477,9 +524,12 @@ export function useJournalStorage() {
     setReflectionEmojiIndex,
     addReflectionMeasure,
     removeReflectionMeasure,
+    removeReflectionWeek,
     updateReflectionMeasure,
     submitReflectionWeek,
     setSeekingFeedbackText,
     setHonestyGivingFeedbackText,
+    setSeekingFeedbackSubmitted,
+    setHonestyGivingFeedbackSubmitted,
   };
 }
