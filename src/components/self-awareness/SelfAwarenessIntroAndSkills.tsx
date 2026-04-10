@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback } from "react";
-import { RATING_SKILLS, RATING_TABLE_WIDTH_PCT } from "@/lib/self-awareness";
+import {
+  JOURNAL_GLASS_BORDER,
+  JOURNAL_GLASS_PANEL_BASE,
+  RATING_SKILLS,
+  RATING_TABLE_WIDTH_PCT,
+} from "@/lib/self-awareness";
 import { useJournalStorage } from "@/hooks/useJournalStorage";
 import { SegmentedControl } from "./SegmentedControl";
 
@@ -41,7 +46,7 @@ export function SelfAwarenessIntroAndSkills() {
       />
 
       <section
-        className="mt-11 rounded-[1.25rem] border border-white/70 bg-white/40 px-5 py-8 shadow-[0_1px_0_rgba(43,106,158,0.07),inset_0_1px_0_rgba(255,255,255,0.5)] backdrop-blur-[3px] sm:mt-14 sm:rounded-[1.35rem] sm:px-8 sm:py-9"
+        className={`mt-11 sm:mt-14 ${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.skillsRating}`}
         aria-labelledby="sa-rating-block-title"
       >
         <div className="mb-7 border-b border-slate-200/35 pb-6 sm:mb-8 sm:pb-7">
@@ -58,7 +63,7 @@ export function SelfAwarenessIntroAndSkills() {
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-slate-200/40 bg-gradient-to-br from-white/95 via-white/75 to-bvm-tableHeader/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+        <div className="overflow-hidden rounded-xl border-2 border-sky-300/40 bg-gradient-to-br from-white/95 via-white/75 to-bvm-tableHeader/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
           <div
             className="grid min-h-[4.5rem] items-stretch"
             style={{

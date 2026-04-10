@@ -1,5 +1,5 @@
 import { SelfAwarenessIntroAndSkills } from "@/components/self-awareness/SelfAwarenessIntroAndSkills";
-import { SelfCompassionSection } from "@/components/self-awareness/SelfCompassionSection";
+import  SelfCompassion  from "@/components/self-compassion/SelfCompassion";
 import { EmotionalAwarenessSection } from "@/components/self-awareness/EmotionalAwarenessSection";
 import { HonestySection } from "@/components/self-awareness/HonestySection";
 import { JournalPageFooter } from "@/components/self-awareness/JournalPageFooter";
@@ -40,7 +40,7 @@ export default function Home() {
                 {title}
               </h2>
             ) : null}
-            {id === "self-compassion" && <SelfCompassionSection />}
+            {id === "self-compassion" && <SelfCompassion />}
             {id === "seeking-feedback" && <SeekingFeedbackSection headingId={headingId} />}
             {id === "honesty" && <HonestySection headingId={headingId} />}
             {id === "self-reflection" && <SelfReflectionSection headingId={headingId} />}

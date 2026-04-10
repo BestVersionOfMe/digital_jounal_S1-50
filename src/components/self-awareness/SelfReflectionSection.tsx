@@ -5,6 +5,8 @@ import { useJournalStorage } from "@/hooks/useJournalStorage";
 import {
   isMeasureRatingComplete,
   isPresetWordLabel,
+  JOURNAL_GLASS_BORDER,
+  JOURNAL_GLASS_PANEL_BASE,
   legacyWordChoiceToLabel,
   MAX_REFLECTION_WORDS,
   newReflectionMeasureId,
@@ -471,7 +473,7 @@ export function SelfReflectionSection({ headingId }: Props) {
   return (
     <div className="mx-auto max-w-[40rem] space-y-8 px-5 pb-16 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
       <section
-        className="rounded-[1.35rem] border border-white/65 bg-white/35 px-5 py-8 shadow-[0_1px_0_rgba(43,106,158,0.06),inset_0_1px_0_rgba(255,255,255,0.45)] backdrop-blur-[2px] sm:px-8 sm:py-10"
+        className={`${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.selfReflection} sm:py-10`}
         aria-labelledby={headingId}
       >
         <div className="space-y-6">
@@ -521,7 +523,7 @@ export function SelfReflectionSection({ headingId }: Props) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200/50 bg-white/25 px-4 py-4">
+          <div className="rounded-2xl border-2 border-teal-300/35 bg-white/25 px-4 py-4">
             <div className="text-[0.8125rem] font-medium text-slate-600">Preview:</div>
 
             {scale === "numbers" && (
@@ -594,7 +596,7 @@ export function SelfReflectionSection({ headingId }: Props) {
         </h3>
 
         {state.reflectionWeeks.length === 0 ? (
-          <div className="rounded-[1.25rem] border-2 border-bvm-title/35 bg-gradient-to-br from-sky-50/90 to-indigo-50/40 px-3 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-5">
+          <div className="rounded-[1.25rem] border-2 border-cyan-500/45 bg-gradient-to-br from-sky-50/90 to-indigo-50/40 px-3 py-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-5">
             <p className="text-center text-[0.9rem] leading-relaxed text-slate-600">
               Please create your self reflection measure.
             </p>
@@ -611,7 +613,7 @@ export function SelfReflectionSection({ headingId }: Props) {
                 <div
                   key={week.id}
                   className={[
-                    "rounded-[1.25rem] border-2 border-bvm-title/35 bg-gradient-to-br from-sky-50/90 to-indigo-50/40 px-3 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-5 sm:py-5",
+                    "rounded-[1.25rem] border-2 border-cyan-500/45 bg-gradient-to-br from-sky-50/90 to-indigo-50/40 px-3 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-5 sm:py-5",
                     week.submitted ? "ring-1 ring-slate-300/60" : "",
                   ].join(" ")}
                 >
