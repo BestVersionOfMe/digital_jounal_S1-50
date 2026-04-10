@@ -448,6 +448,7 @@ export function SelfReflectionSection({ headingId }: Props) {
     setReflectionEmojiIndex,
     addReflectionMeasure,
     removeReflectionMeasure,
+    removeReflectionWeek,
     updateReflectionMeasure,
     submitReflectionWeek,
   } = useJournalStorage();
@@ -613,27 +614,48 @@ export function SelfReflectionSection({ headingId }: Props) {
                 <div
                   key={week.id}
                   className={[
-                    "rounded-[1.25rem] border-2 border-cyan-500/45 bg-gradient-to-br from-sky-50/90 to-indigo-50/40 px-3 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-5 sm:py-5",
+                    "relative rounded-[1.25rem] border-2 border-cyan-500/45 bg-gradient-to-br from-sky-50/90 to-indigo-50/40 px-3 py-4 pr-11 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:px-5 sm:py-5 sm:pr-14",
                     week.submitted ? "ring-1 ring-slate-300/60" : "",
                   ].join(" ")}
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        typeof window !== "undefined" &&
+                        !window.confirm(
+                          `Delete ${week.label} and all areas in this week? This cannot be undone.`,
+                        )
+                      ) {
+                        return;
+                      }
+                      removeReflectionWeek(week.id);
+                    }}
+                    className="absolute right-2 top-2 z-10 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 sm:right-3 sm:top-3"
+                    aria-label={`Delete ${week.label}`}
+                  >
+                    <IconTrash />
+                  </button>
+
                   <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-center sm:gap-3">
-                    <p className="shrink-0 font-display text-[0.95rem] font-bold text-slate-900 sm:text-base">
+                    <p className="shrink-0 pr-1 font-display text-[0.95rem] font-bold text-slate-900 sm:text-base">
                       {week.label}
                     </p>
-                    <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <div
-                        className="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-200/90"
-                        role="progressbar"
-                        aria-valuenow={done}
-                        aria-valuemin={0}
-                        aria-valuemax={total || 1}
-                        aria-label={`${week.label} progress`}
-                      >
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:flex-nowrap">
+                      <div className="flex min-w-0 w-full flex-1 items-center justify-start sm:w-auto">
                         <div
-                          className="h-full rounded-full bg-bvm-title transition-[width] duration-300 ease-out"
-                          style={{ width: `${pct}%` }}
-                        />
+                          className="h-2.5 w-full min-w-0 overflow-hidden rounded-full bg-slate-200/90 sm:w-[90%]"
+                          role="progressbar"
+                          aria-valuenow={done}
+                          aria-valuemin={0}
+                          aria-valuemax={total || 1}
+                          aria-label={`${week.label} progress`}
+                        >
+                          <div
+                            className="h-full rounded-full bg-bvm-title transition-[width] duration-300 ease-out"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
                       </div>
                       <span className="shrink-0 text-[0.65rem] font-medium tabular-nums text-slate-600 sm:text-[0.7rem]">
                         {total > 0 ? `${done}/${total}` : "0/0"}

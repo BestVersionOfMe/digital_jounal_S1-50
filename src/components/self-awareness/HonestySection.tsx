@@ -46,12 +46,40 @@ function SproutIcon({ className }: { className?: string }) {
   );
 }
 
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+    </svg>
+  );
+}
+
 export function HonestySection({ headingId }: Props) {
-  const { state, setHonestyGivingFeedbackText } = useJournalStorage();
+  const {
+    state,
+    setHonestyGivingFeedbackText,
+    setHonestyGivingFeedbackSubmitted,
+  } = useJournalStorage();
+
+  const text = state.honestyGivingFeedbackText;
+  const trimmed = text.trim();
+  const locked = state.honestyGivingFeedbackSubmitted && trimmed.length > 0;
 
   return (
     <div className="mx-auto max-w-[40rem] px-5 pb-16 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
-      <section className={`${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.honesty}`}>
+      <section
+        className={`relative ${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.honesty}`}
+        aria-labelledby={headingId}
+      >
         <p className="mt-3 text-[0.9375rem] leading-[1.75] text-slate-600 sm:text-[1rem]">
           Giving feedback is just as important as receiving it. Use the{" "}
           <strong className="font-semibold text-slate-800">Glow &amp; Grow</strong> method:
@@ -79,19 +107,48 @@ export function HonestySection({ headingId }: Props) {
           </div>
         </div>
 
-        <div className="mt-8">
-          <label htmlFor="honesty-glow-grow" className="block text-[0.95rem] font-medium text-slate-800">
-            Plan a Glow &amp; Grow for someone:
-          </label>
-          <textarea
-            id="honesty-glow-grow"
-            name="honestyGivingFeedback"
-            rows={5}
-            value={state.honestyGivingFeedbackText}
-            onChange={(e) => setHonestyGivingFeedbackText(e.target.value)}
-            placeholder="What will you say?"
-            className="mt-3 w-full resize-y rounded-2xl border border-pink-100 bg-[#f3e8f5]/45 px-4 py-3.5 text-[0.9375rem] leading-relaxed text-slate-800 placeholder:italic placeholder:text-slate-400 focus:border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-200/80"
-          />
+        <div className="relative mt-8">
+          <div className={locked ? "pr-11" : undefined}>
+            <label htmlFor="honesty-glow-grow" className="block text-[0.95rem] font-medium text-slate-800">
+              Plan a Glow &amp; Grow for someone:
+            </label>
+          </div>
+
+          {locked ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setHonestyGivingFeedbackSubmitted(false)}
+                className="absolute right-0 top-0 rounded-lg p-2 text-slate-500 transition-colors hover:bg-white/60 hover:text-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-200/80"
+                aria-label="Edit answer"
+              >
+                <PencilIcon className="h-5 w-5" />
+              </button>
+              <div className="mt-3 min-h-[6rem] whitespace-pre-wrap rounded-2xl border border-pink-100 bg-[#f3e8f5]/35 px-4 py-3.5 text-[0.9375rem] leading-relaxed text-slate-800">
+                {text}
+              </div>
+            </>
+          ) : (
+            <>
+              <textarea
+                id="honesty-glow-grow"
+                name="honestyGivingFeedback"
+                rows={5}
+                value={text}
+                onChange={(e) => setHonestyGivingFeedbackText(e.target.value)}
+                placeholder="What will you say?"
+                className="mt-3 w-full resize-y rounded-2xl border border-pink-100 bg-[#f3e8f5]/45 px-4 py-3.5 text-[0.9375rem] leading-relaxed text-slate-800 placeholder:italic placeholder:text-slate-400 focus:border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-200/80"
+              />
+              <button
+                type="button"
+                disabled={trimmed.length === 0}
+                onClick={() => setHonestyGivingFeedbackSubmitted(true)}
+                className="mt-4 w-full rounded-xl bg-bvm-title px-5 py-3 text-[0.95rem] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-bvm-title/90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+              >
+                Submit
+              </button>
+            </>
+          )}
         </div>
       </section>
     </div>

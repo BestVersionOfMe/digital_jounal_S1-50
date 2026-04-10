@@ -28,25 +28,9 @@ export function SelfAwarenessIntroAndSkills() {
   );
 
   return (
-    <div className="bvm-page mx-auto max-w-[40rem] px-5 pb-12 pt-14 text-slate-800 sm:max-w-[42rem] sm:px-8 sm:pb-16 sm:pt-16">
-      <header className="mx-auto max-w-xl text-center">
-        <h1 className="font-display text-[1.625rem] font-semibold leading-[1.12] tracking-[0.04em] text-bvm-title drop-shadow-[0_1px_0_rgba(255,255,255,0.45)] sm:text-[1.8125rem]">
-          <span className="text-balance">SELF-AWARENESS</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-[min(20rem,100%)] text-[0.9375rem] leading-[1.8] text-slate-600 sm:mt-5 sm:max-w-[22rem] sm:text-[1rem] sm:leading-[1.78]">
-          <span className="text-balance">
-            Self-awareness is understanding your thoughts, feelings, and behaviours.
-          </span>
-        </p>
-      </header>
-
-      <div
-        className="mx-auto mt-12 h-px max-w-[10rem] bg-gradient-to-r from-transparent via-bvm-title/18 to-transparent sm:mt-14"
-        aria-hidden
-      />
-
+    <div className="bvm-page mx-auto max-w-[40rem] px-5 pb-12 pt-10 text-slate-800 sm:max-w-[42rem] sm:px-8 sm:pb-16 sm:pt-12">
       <section
-        className={`mt-11 sm:mt-14 ${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.skillsRating}`}
+        className={`mt-2 sm:mt-3 ${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.skillsRating}`}
         aria-labelledby="sa-rating-block-title"
       >
         <div className="mb-7 border-b border-slate-200/35 pb-6 sm:mb-8 sm:pb-7">

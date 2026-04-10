@@ -100,7 +100,7 @@ export const STORAGE_KEY = "bvm_journal_v1";
  * Frosted glass body — add one of `JOURNAL_GLASS_BORDER.*` for a tinted rim (“effect 1”).
  */
 export const JOURNAL_GLASS_PANEL_BASE =
-  "rounded-[1.25rem] border-2 bg-white/40 px-5 py-8 shadow-[0_1px_0_rgba(43,106,158,0.07),inset_0_1px_0_rgba(255,255,255,0.5)] backdrop-blur-[3px] sm:rounded-[1.35rem] sm:px-8 sm:py-9";
+  "rounded-[1.25rem] border-2 bg-gradient-to-br from-white/60 via-white/45 to-sky-100/25 px-5 py-8 shadow-[0_1px_0_rgba(43,106,158,0.1),0_10px_40px_-8px_rgba(43,106,158,0.12),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-md sm:rounded-[1.35rem] sm:px-8 sm:py-9";
 
 /** Distinct rim colors per journal block */
 export const JOURNAL_GLASS_BORDER = {
@@ -233,8 +233,11 @@ export type JournalState = {
   reflectionWeeks: ReflectionWeekBlock[];
   /** Seeking Feedback — who to ask */
   seekingFeedbackText: string;
+  /** After Submit: textarea is read-only until user taps edit */
+  seekingFeedbackSubmitted: boolean;
   /** Honesty (Giving Feedback) — Glow & Grow plan */
   honestyGivingFeedbackText: string;
+  honestyGivingFeedbackSubmitted: boolean;
 };
 
 export function defaultJournalState(): JournalState {
@@ -257,7 +260,9 @@ export function defaultJournalState(): JournalState {
     reflectionEmojiIndex: 1,
     reflectionWeeks: [],
     seekingFeedbackText: "",
+    seekingFeedbackSubmitted: false,
     honestyGivingFeedbackText: "",
+    honestyGivingFeedbackSubmitted: false,
   };
 }
 
