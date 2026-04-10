@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-feature-settings:
+      "kern" 1,
+      "liga" 1;
+  }
+
+  .font-display {
+    font-feature-settings:
+      "kern" 1,
+      "liga" 1,
+      "lnum" 1;
+  }
+
+  ::selection {
+    background-color: rgba(43, 106, 158, 0.12);
+  }
+}
