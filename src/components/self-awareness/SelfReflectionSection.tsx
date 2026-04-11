@@ -438,6 +438,8 @@ function JournalRatingCell({
 }
 
 export function SelfReflectionSection({ headingId }: Props) {
+  const [editingWeekIds, setEditingWeekIds] = useState<Record<string, boolean>>({});
+
   const {
     state,
     setReflectionArea,
@@ -449,6 +451,7 @@ export function SelfReflectionSection({ headingId }: Props) {
     addReflectionMeasure,
     removeReflectionMeasure,
     removeReflectionWeek,
+    setReflectionWeekDate,
     updateReflectionMeasure,
     submitReflectionWeek,
   } = useJournalStorage();
@@ -470,6 +473,11 @@ export function SelfReflectionSection({ headingId }: Props) {
   }, [addReflectionMeasure, state.reflectionArea, state.reflectionScale, state.reflectionWordTokens]);
 
   const scale = state.reflectionScale;
+
+  const isWeekEditable = (weekId: string, submitted: boolean): boolean => {
+    if (!submitted) return true;
+    return editingWeekIds[weekId] === true;
+  };
 
   return (
     <div className="mx-auto max-w-[40rem] space-y-8 px-5 pb-16 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
@@ -609,6 +617,7 @@ export function SelfReflectionSection({ headingId }: Props) {
               const done = week.measures.filter(isMeasureRatingComplete).length;
               const pct = total > 0 ? Math.round((done / total) * 100) : 0;
               const canSubmit = !week.submitted && total > 0 && done === total;
+              const editable = isWeekEditable(week.id, week.submitted);
 
               return (
                 <div
@@ -638,9 +647,29 @@ export function SelfReflectionSection({ headingId }: Props) {
                   </button>
 
                   <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-center sm:gap-3">
-                    <p className="shrink-0 pr-1 font-display text-[0.95rem] font-bold text-slate-900 sm:text-base">
-                      {week.label}
-                    </p>
+                    <div className="shrink-0 pr-1">
+                      <p className="font-display text-[0.95rem] font-bold text-slate-900 sm:text-base">
+                        {week.label}
+                      </p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <label className="text-[0.62rem] font-medium text-slate-600 sm:text-[0.65rem]">
+                          Reflection date
+                        </label>
+                        {editable ? (
+                          <input
+                            id={`${week.id}-reflection-date`}
+                            type="date"
+                            value={week.reflectionDate}
+                            onChange={(e) => setReflectionWeekDate(week.id, e.target.value)}
+                            className="rounded-md border border-slate-200/80 bg-white/90 px-2 py-1 text-[0.65rem] font-medium text-slate-700 focus:border-bvm-title/50 focus:outline-none focus:ring-2 focus:ring-bvm-title/15 sm:text-[0.68rem]"
+                          />
+                        ) : (
+                          <span className="rounded-md border border-slate-200/80 bg-white/80 px-2 py-1 text-[0.65rem] font-medium text-slate-700 sm:text-[0.68rem]">
+                            {week.reflectionDate || "—"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:flex-nowrap">
                       <div className="flex min-w-0 w-full flex-1 items-center justify-start sm:w-auto">
                         <div
@@ -660,7 +689,20 @@ export function SelfReflectionSection({ headingId }: Props) {
                       <span className="shrink-0 text-[0.65rem] font-medium tabular-nums text-slate-600 sm:text-[0.7rem]">
                         {total > 0 ? `${done}/${total}` : "0/0"}
                       </span>
-                      {canSubmit ? (
+                      {week.submitted ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditingWeekIds((prev) => ({
+                              ...prev,
+                              [week.id]: !prev[week.id],
+                            }))
+                          }
+                          className="shrink-0 rounded-full border border-bvm-title/50 bg-white/90 px-3 py-1.5 text-[0.68rem] font-semibold text-bvm-title shadow-sm transition-colors hover:bg-bvm-title hover:text-white sm:text-[0.72rem]"
+                        >
+                          {editable ? "Done Editing" : "Edit Reflection"}
+                        </button>
+                      ) : canSubmit ? (
                         <button
                           type="button"
                           onClick={() => submitReflectionWeek(week.id)}
@@ -682,12 +724,22 @@ export function SelfReflectionSection({ headingId }: Props) {
                             <p className="text-[0.68rem] font-semibold text-slate-700 sm:text-[0.72rem]">
                               Area {i + 1}:
                             </p>
-                            <p
-                              className="mt-0.5 truncate text-[0.78rem] font-medium text-slate-900 sm:text-[0.85rem]"
-                              title={m.area || undefined}
-                            >
-                              {m.area || "—"}
-                            </p>
+                            {editable ? (
+                              <input
+                                type="text"
+                                value={m.area}
+                                onChange={(e) => updateReflectionMeasure(m.id, { area: e.target.value })}
+                                placeholder="Area name"
+                                className="mt-0.5 w-full rounded-md border border-slate-200/80 bg-white/85 px-2 py-1 text-[0.75rem] font-medium text-slate-900 placeholder:text-slate-400 focus:border-bvm-title/50 focus:outline-none focus:ring-2 focus:ring-bvm-title/15 sm:text-[0.82rem]"
+                              />
+                            ) : (
+                              <p
+                                className="mt-0.5 truncate text-[0.78rem] font-medium text-slate-900 sm:text-[0.85rem]"
+                                title={m.area || undefined}
+                              >
+                                {m.area || "—"}
+                              </p>
+                            )}
                             <p
                               className="mt-1 truncate text-[0.62rem] text-slate-500 sm:text-[0.65rem]"
                               title={scaleDisplayName(m.scale)}
@@ -699,14 +751,14 @@ export function SelfReflectionSection({ headingId }: Props) {
                           <div className="flex min-w-0 flex-1 items-center overflow-hidden rounded-full border border-sky-200/60 bg-white/25 px-2 py-1.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)]">
                             <div className="w-full px-1.5">
                               <JournalRatingCell
-                                readOnly={week.submitted}
                                 m={m}
+                                readOnly={!editable}
                                 onPatch={(patch) => updateReflectionMeasure(m.id, patch)}
                               />
                             </div>
                           </div>
 
-                          {!week.submitted ? (
+                          {editable ? (
                             <button
                               type="button"
                               onClick={() => removeReflectionMeasure(m.id)}

@@ -210,8 +210,10 @@ export type ReflectionWeekBlock = {
   id: string;
   /** Display label, e.g. "Week One". */
   label: string;
+  /** Reflection date (`YYYY-MM-DD`) shown under the week title. */
+  reflectionDate: string;
   measures: SelfReflectionMeasure[];
-  /** When true, ratings are read-only and new rows are added to the next week only. */
+  /** When true, week is marked as submitted; users can still edit entries/date. */
   submitted: boolean;
 };
 
@@ -282,6 +284,14 @@ export function newReflectionMeasureId(): string {
 
 export function newReflectionWeekId(): string {
   return newReflectionMeasureId();
+}
+
+export function todayIsoDateLocal(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 /** Whether the user has completed the rating for this measure (counts toward week progress). */
