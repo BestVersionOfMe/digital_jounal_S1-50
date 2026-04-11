@@ -7,7 +7,7 @@ type Props = { headingId: string };
 
 const SUGGESTED_QUESTIONS = [
   "What's one thing I did really well?",
-  "What's one thing I could improve next time?",
+  "What's one thing I could improve next time",
   "If you were in my shoes, what would you have done differently?",
 ];
 
