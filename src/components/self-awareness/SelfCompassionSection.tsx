@@ -259,7 +259,7 @@ export function SelfCompassionSection() {
                 onClick={goNext}
                 className="group flex items-center gap-2 rounded-full pl-2 pr-1 text-[0.9375rem] font-semibold text-bvm-title transition-colors hover:text-[#245a87]"
               >
-                <span>Next</span>
+                <span>{step === total - 1 ? "Save to my profile" : "Next"}</span>
                 <IconNextCircle />
               </button>
             </div>

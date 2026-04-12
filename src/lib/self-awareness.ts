@@ -92,6 +92,17 @@ export const COMPASSION_PROMPTS: CompassionPrompt[] = [
       "Encouraging others",
     ],
   },
+  {
+    id: "sc_kind_to_self",
+    prompt: "How can you practice being kinder to yourself in moments of stress?",
+    suggestions: [
+      "Take a deep breath",
+      "Pause before reacting",
+      "Tell myself it's okay",
+      "Notice my feelings",
+      "Speak like a good friend",
+    ],
+  },
 ];
 
 export const STORAGE_KEY = "bvm_journal_v1";
