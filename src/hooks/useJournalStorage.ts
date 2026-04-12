@@ -11,6 +11,7 @@ import {
   newReflectionWeekId,
   normalizeCustomWordPool,
   normalizeWordTokens,
+  todayIsoDateLocal,
   weekLabelFromIndex,
   type JournalState,
   type ReflectionWeekBlock,
@@ -36,6 +37,10 @@ function isWordChoice(v: unknown): v is ReflectionWordChoice {
 
 function isScale(v: unknown): v is SelfReflectionScale {
   return v === "numbers" || v === "words" || v === "emojis";
+}
+
+function isIsoDate(v: unknown): v is string {
+  return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
 }
 
 /** Legacy single-entry shape */
@@ -86,11 +91,12 @@ function parseWeekBlock(raw: unknown): ReflectionWeekBlock | null {
   const o = raw as Record<string, unknown>;
   if (typeof o.id !== "string") return null;
   const label = typeof o.label === "string" ? o.label : weekLabelFromIndex(0);
+  const reflectionDate = isIsoDate(o.reflectionDate) ? o.reflectionDate : todayIsoDateLocal();
   const measures = Array.isArray(o.measures)
     ? o.measures.map(parseMeasure).filter((m): m is SelfReflectionMeasure => m != null)
     : [];
   const submitted = o.submitted === true;
-  return { id: o.id, label, measures, submitted };
+  return { id: o.id, label, reflectionDate, measures, submitted };
 }
 
 function parseStored(raw: string | null): JournalState {
@@ -157,6 +163,7 @@ function parseStored(raw: string | null): JournalState {
           {
             id: newReflectionWeekId(),
             label: weekLabelFromIndex(0),
+            reflectionDate: todayIsoDateLocal(),
             measures: parsed,
             submitted: false,
           },
@@ -169,6 +176,7 @@ function parseStored(raw: string | null): JournalState {
           {
             id: newReflectionWeekId(),
             label: weekLabelFromIndex(0),
+            reflectionDate: todayIsoDateLocal(),
             measures: [
               {
                 id: `migrated_${Date.now()}`,
@@ -344,6 +352,7 @@ export function useJournalStorage() {
         weeks.push({
           id: newReflectionWeekId(),
           label: weekLabelFromIndex(weeks.length),
+          reflectionDate: todayIsoDateLocal(),
           measures: [measure],
           submitted: false,
         });
@@ -396,7 +405,7 @@ export function useJournalStorage() {
       patch: Partial<
         Pick<
           SelfReflectionMeasure,
-          "numberValue" | "wordTokens" | "wordRatingIndex" | "emojiIndex"
+          "area" | "numberValue" | "wordTokens" | "wordRatingIndex" | "emojiIndex"
         >
       >,
     ) => {
@@ -413,6 +422,9 @@ export function useJournalStorage() {
                   patch.numberValue === null
                     ? null
                     : Math.min(10, Math.max(1, Math.round(patch.numberValue)));
+              }
+              if (patch.area !== undefined) {
+                merged.area = patch.area;
               }
               if (patch.emojiIndex !== undefined) {
                 merged.emojiIndex =
@@ -443,6 +455,22 @@ export function useJournalStorage() {
     [],
   );
 
+  const setReflectionWeekDate = useCallback((weekId: string, reflectionDate: string) => {
+    if (!isIsoDate(reflectionDate)) return;
+    setState((prev) => {
+      const next = {
+        ...prev,
+        reflectionWeeks: prev.reflectionWeeks.map((w) =>
+          w.id === weekId ? { ...w, reflectionDate } : w,
+        ),
+      };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
+  }, []);
+
   const submitReflectionWeek = useCallback((weekId: string) => {
     setState((prev) => {
       const idx = prev.reflectionWeeks.findIndex((w) => w.id === weekId);
@@ -460,6 +488,7 @@ export function useJournalStorage() {
       weeks.push({
         id: newReflectionWeekId(),
         label: weekLabelFromIndex(weeks.length),
+        reflectionDate: todayIsoDateLocal(),
         measures: nextMeasures,
         submitted: false,
       });
@@ -525,6 +554,7 @@ export function useJournalStorage() {
     addReflectionMeasure,
     removeReflectionMeasure,
     removeReflectionWeek,
+    setReflectionWeekDate,
     updateReflectionMeasure,
     submitReflectionWeek,
     setSeekingFeedbackText,
