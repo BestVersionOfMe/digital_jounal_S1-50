@@ -27,11 +27,9 @@ export default function Home() {
             ? "SELF COMPASSION"
             : id === "seeking-feedback"
               ? "SEEKING FEEDBACK"
-              : id === "honesty"
-                ? "HONESTY"
-                : id === "self-reflection"
-                  ? "SELF REFLECTION"
-                  : "";
+              : id === "self-reflection"
+                ? "SELF REFLECTION"
+                : "";
         return (
           <section key={id} id={id} className={sectionScrollClass} aria-labelledby={headingId}>
             {title ? (

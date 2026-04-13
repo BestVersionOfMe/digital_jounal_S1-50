@@ -1,9 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useJournalStorage } from "@/hooks/useJournalStorage";
 import { JOURNAL_GLASS_BORDER, JOURNAL_GLASS_PANEL_BASE } from "@/lib/self-awareness";
 
 type Props = { headingId: string };
+
+const CATEGORY_OPTIONS = ["Glow", "Grow"];
+const CONFIDENCE_OPTIONS = [
+  { label: "Very unhappy", emoji: "😞" },
+  { label: "Unhappy", emoji: "😕" },
+  { label: "Neutral", emoji: "😐" },
+  { label: "Happy", emoji: "🙂" },
+  { label: "Very happy", emoji: "😄" },
+];
 
 function FeedbackIcon({ className }: { className?: string }) {
   return (
@@ -69,108 +79,154 @@ export function HonestySection({ headingId }: Props) {
   const text = state.honestyGivingFeedbackText;
   const trimmed = text.trim();
   const locked = state.honestyGivingFeedbackSubmitted && trimmed.length > 0;
+  const [category, setCategory] = useState(CATEGORY_OPTIONS[0]);
+  const [actionText, setActionText] = useState("");
+  const [confidence, setConfidence] = useState(CONFIDENCE_OPTIONS[2].label);
 
   return (
-    <div className="mx-auto max-w-[40rem] px-5 pb-16 pt-8 text-center sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
-      <p className="mb-6 text-[0.95rem] font-semibold uppercase tracking-[0.35em] text-slate-500">
-        HONESTY
-      </p>
+    <div className="mx-auto max-w-[76rem] px-5 pb-16 pt-8 sm:px-10 sm:pb-24 sm:pt-12">
+      <div className="mb-10 text-center">
+        <h1 className="mx-auto max-w-2xl text-[2.4rem] font-semibold tracking-[-0.04em] text-slate-950 sm:text-[3rem]">
+          Giving <span className="text-sky-600">Feedback</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-[1.02rem]">
+          Giving feedback to someone else is just as important as receiving it and it's a skill you can practise! Good feedback helps someone grow and feel supported rather than criticised. One easy way to do this is using the Grow & Glow method.
+        </p>
+      </div>
 
       <section
-        className={`relative overflow-hidden rounded-[2.5rem] bg-[#fff1f7] px-5 py-8 shadow-[0_25px_80px_rgba(219,39,119,0.16)] sm:px-8`}
+        className="rounded-[3rem] bg-white p-6 shadow-[0_25px_80px_rgba(15,23,42,0.08)] sm:p-8"
         aria-labelledby={headingId}
       >
-        <div className="mb-7 rounded-[2rem] bg-white px-6 py-5 shadow-[0_15px_40px_rgba(15,23,42,0.06)] sm:px-7 sm:py-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-pink-100 text-pink-700 shadow-sm">
-              <FeedbackIcon className="h-6 w-6" />
-            </div>
-            <div className="text-left">
-              <p className="text-[0.78rem] font-semibold uppercase tracking-[0.3em] text-pink-500">
-                Seeking Feedback
-              </p>
-              <h2 className="mt-2 text-[1.4rem] font-semibold leading-tight tracking-[-0.03em] text-slate-950">
-                Empower others through the 'Glow & Grow' method.
-              </h2>
-              <p className="mt-3 max-w-xl text-[0.95rem] leading-7 text-slate-600">
-                Kindness is your most effective tool. Use this structure to give supportive, clear feedback.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6 rounded-[2rem] bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:p-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 rounded-[1.75rem] border border-slate-200/80 bg-slate-50 p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-slate-950 text-white shadow-sm">
-                <GlowIcon className="h-5 w-5" />
+        <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
+          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-sky-100 text-sky-700 shadow-sm">
+                <GlowIcon className="h-6 w-6" />
               </div>
-              <div className="text-left">
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.3em] text-slate-400">
-                  The Glow
+              <div>
+                <p className="text-[0.75rem] font-semibold uppercase tracking-[0.32em] text-slate-400">
+                  Glow
                 </p>
-                <p className="mt-2 text-[0.95rem] leading-7 text-slate-900">
+                <p className="mt-2 text-sm leading-6 text-slate-900">
                   Start with something positive the person did really well.
                 </p>
               </div>
             </div>
+          </div>
 
-            <div className="flex items-center gap-4 rounded-[1.75rem] border border-slate-200/80 bg-slate-50 p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-700 shadow-sm">
-                <GrowIcon className="h-5 w-5" />
+          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-700 shadow-sm">
+                <GrowIcon className="h-6 w-6" />
               </div>
-              <div className="text-left">
-                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.3em] text-slate-400">
-                  The Grow
+              <div>
+                <p className="text-[0.75rem] font-semibold uppercase tracking-[0.32em] text-slate-400">
+                  Grow
                 </p>
-                <p className="mt-2 text-[0.95rem] leading-7 text-slate-900">
-                  Suggest one constructive area for development or future focus.
+                <p className="mt-2 text-sm leading-6 text-slate-900">
+                  Suggest one thing they could improve or work on next time.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="rounded-[2rem] bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <p className="text-left text-[0.95rem] font-semibold text-slate-900">
-              Your personal reflection
-            </p>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-[0.75rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
-              DRAFT
+        <div className="mt-6 flex flex-col gap-4 rounded-[2rem] border border-slate-200 bg-slate-50 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex flex-wrap items-center gap-3">
+            {CATEGORY_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setCategory(option)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  category === option
+                    ? "bg-slate-950 text-white"
+                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+
+          <label className="flex-1 text-left sm:text-right">
+            <span className="sr-only">Action suggestion</span>
+            <input
+              type="text"
+              value={actionText}
+              onChange={(e) => setActionText(e.target.value)}
+              placeholder="One-line action suggestion..."
+              className="w-full rounded-full border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100 sm:max-w-md"
+            />
+          </label>
+        </div>
+
+        <div className="mt-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-slate-900">When appropriate, use this space to plan what feedback you will give.</p>
+            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[0.75rem] uppercase tracking-[0.2em] text-slate-500">
+              Est. 3 minutes
             </span>
           </div>
 
           <textarea
             id="honesty-glow-grow"
             name="honestyGivingFeedback"
-            rows={5}
+            rows={6}
             value={text}
             onChange={(e) => setHonestyGivingFeedbackText(e.target.value)}
-            placeholder="Capture your thoughts..."
-            className="mt-4 min-h-[13rem] w-full resize-none rounded-[1.75rem] border border-slate-200 bg-slate-50 px-5 py-4 text-[0.98rem] leading-7 text-slate-900 placeholder:text-slate-400 focus:border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-100"
+            placeholder="Type your glow notes here..."
+            className="mt-5 min-h-[16rem] w-full resize-none rounded-[2rem] border border-slate-200 bg-white px-5 py-5 text-sm leading-7 text-slate-900 placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
           />
+        </div>
 
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-[0.78rem] font-semibold text-slate-700">
-              + Feeling clear
-            </span>
-            <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-[0.78rem] font-semibold text-slate-700">
-              + Need more info
-            </span>
-            <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-[0.78rem] font-semibold text-slate-700">
-              + Helpful insight
-            </span>
+        <div className="mt-6 rounded-[2rem] border border-slate-200 bg-slate-50 p-5 shadow-sm">
+          <p className="mb-5 text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">
+            How confident do you feel delivering this feedback?
+          </p>
+          <div className="grid gap-3 sm:grid-cols-5">
+            {CONFIDENCE_OPTIONS.map((option) => (
+              <button
+                key={option.label}
+                type="button"
+                onClick={() => setConfidence(option.label)}
+                className={`flex flex-col items-center justify-center gap-2 rounded-[1.75rem] border px-3 py-4 text-sm transition ${
+                  confidence === option.label
+                    ? "border-slate-950 bg-slate-950 text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                }`}
+              >
+                <span className="text-[1.5rem]">{option.emoji}</span>
+                <span>{option.label}</span>
+              </button>
+            ))}
           </div>
+        </div>
 
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
-            disabled={!trimmed}
-            onClick={() => setHonestyGivingFeedbackSubmitted(true)}
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-pink-600 px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(219,39,119,0.25)] transition hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={() => {
+              setCategory(CATEGORY_OPTIONS[0]);
+              setActionText("");
+              setHonestyGivingFeedbackText("");
+              setConfidence(CONFIDENCE_OPTIONS[2].label);
+            }}
+            className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
-            Save reflection
+            Reset
           </button>
+          <div className="flex flex-1 justify-center sm:justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setHonestyGivingFeedbackSubmitted(true)}
+              disabled={!trimmed}
+              className="rounded-full bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Submit to my profile
+            </button>
+          </div>
         </div>
       </section>
     </div>
