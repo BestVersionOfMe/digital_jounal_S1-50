@@ -766,10 +766,10 @@ export default function SelfCompassion() {
                     👍
                   </div>
                   <h3 className="mb-2 text-[1.125rem] font-semibold text-slate-800 text-center">
-                    That's a beautiful way to reframe it!
+                    {"That's a beautiful way to reframe it!"}
                   </h3>
                   <p className={`w-full text-center ${scBody} text-slate-700`}>
-                    Being your own friend takes practice, but you're doing great.
+                    {"Being your own friend takes practice, but you're doing great."}
                   </p>
                 </div>
               )}
