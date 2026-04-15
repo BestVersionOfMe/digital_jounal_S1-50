@@ -9,7 +9,8 @@ const QUESTIONS = [
   { part: 1, title: "What’s one thing I did really well write below?" },
   { part: 2, title: "What’s one thing I could improve next time write below?" },
   { part: 3, title: "If you were in my shoes, what would you have done differently?" },
-  { part: 4, title: "“ Do you have any advice for me on how to improve?" },
+  { part: 4, title: "Do you have any advice for me on how to improve?" },
+  { part: 5, title: "Who could you ask for feedback this week?" },
 ];
 
 const PROMPT_CHIPS = [
@@ -40,49 +41,71 @@ function ChevronIcon({ className }: { className?: string }) {
   );
 }
 
+function TrashIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  );
+}
+
 export function SeekingFeedbackSection({ headingId }: Props) {
   const { setSeekingFeedbackText, setSeekingFeedbackSubmitted } = useJournalStorage();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<string[]>(() => Array(QUESTIONS.length).fill(""));
-  const [saved, setSaved] = useState(false);
+  const [weekAnswers, setWeekAnswers] = useState<string[]>(() => Array(10).fill(""));
+  const [savedWeeks, setSavedWeeks] = useState<boolean[]>(() => Array(10).fill(false));
+  const [currentWeek, setCurrentWeek] = useState(0);
 
-  const currentAnswer = answers[currentIndex];
-  const canContinue = currentAnswer.trim().length > 0;
-  const isLastSlide = currentIndex === QUESTIONS.length - 1;
+  const answer = weekAnswers[currentWeek];
+  const canContinue = answer.trim().length > 0;
+  const weekNumber = currentWeek + 1;
+  const weekDate = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }).format(new Date());
 
-  const setAnswer = (index: number, value: string) => {
-    setAnswers((prev) => {
+  const updateAnswer = (value: string) => {
+    setWeekAnswers((prev) => {
       const next = [...prev];
-      next[index] = value;
+      next[currentWeek] = value;
       return next;
     });
   };
 
-  const goNext = () => {
-    if (currentIndex < QUESTIONS.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  };
-
-  const goBack = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
-  };
-
-  const resetSlider = () => {
-    setCurrentIndex(0);
-    setAnswers(Array(QUESTIONS.length).fill(""));
-    setSaved(false);
-  };
-
-  const saveToProfile = () => {
-    setSaved(true);
+  const saveThisWeek = () => {
+    setSavedWeeks((prev) => {
+      const next = [...prev];
+      next[currentWeek] = true;
+      return next;
+    });
     setSeekingFeedbackSubmitted(true);
-    setSeekingFeedbackText(answers.filter(Boolean).join("\n\n"));
+    setSeekingFeedbackText(answer.trim());
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("seeking_feedback_slide_answers", JSON.stringify(answers));
+      window.localStorage.setItem("seeking_feedback_answers", JSON.stringify(weekAnswers));
     }
+  };
+
+  const goNextWeek = () => {
+    if (currentWeek < 9) {
+      setCurrentWeek((prev) => prev + 1);
+    }
+  };
+
+  const clearWeek = () => {
+    setWeekAnswers((prev) => {
+      const next = [...prev];
+      next[currentWeek] = "";
+      return next;
+    });
+    setSavedWeeks((prev) => {
+      const next = [...prev];
+      next[currentWeek] = false;
+      return next;
+    });
   };
 
   return (
@@ -104,144 +127,128 @@ export function SeekingFeedbackSection({ headingId }: Props) {
           </div>
 
           <div className="relative mx-auto w-full max-w-[62rem] overflow-hidden rounded-[2rem]">
-            <div className="absolute right-6 top-6 hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-[0.78rem] text-slate-600 sm:flex">
-              <span className="h-2 w-2 rounded-full bg-slate-500" />
-              Est. 2 minutes
-            </div>
+            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-8 shadow-[0_20px_50px_rgba(15,23,42,0.05)]">
+              <div className="mb-6">
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white px-6 py-6 shadow-sm text-center">
+                  <h3 className="text-[1.45rem] font-semibold tracking-[-0.03em] text-slate-950 m-0">
+                    Weekly feedback check-in
+                  </h3>
+                </div>
+              </div>
 
-            <div className="flex w-full transition-transform duration-300 ease-in-out" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
-              {QUESTIONS.map((question, index) => (
+              <div className="mb-6 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div
-                  key={question.part}
-                  className="flex-shrink-0 w-full rounded-[1.75rem] border border-slate-200 bg-white p-8 shadow-[0_20px_50px_rgba(15,23,42,0.05)]"
+                  className="h-full rounded-full bg-sky-600 transition-all duration-300"
+                  style={{ width: `${weekNumber * 10}%` }}
+                />
+              </div>
+
+              <div className="mb-8 space-y-3">
+                {QUESTIONS.slice(0, 4).map((question) => (
+                  <div key={question.part} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-slate-700 shadow-sm">
+                    <p className="text-sm font-medium text-slate-900">{question.title}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-slate-500">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[0.75rem] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                    Week {weekNumber}
+                  </span>
+                  <span className="text-sm font-medium text-slate-700">{weekDate}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearWeek}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
+                  aria-label="Delete week"
                 >
-                  <div className="mb-4 flex items-center justify-between gap-4 text-slate-500">
-                    <div className="flex items-center gap-3 text-[0.95rem]">
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sky-700">
-                        {question.part}
-                      </span>
+                  <TrashIcon className="h-4 w-4" />
+                </button>
+              </div>
+              <h3 className="text-[1.35rem] font-semibold leading-tight text-slate-950">
+                {QUESTIONS[4].title}
+              </h3>
+                <textarea
+                  value={answer}
+                  onChange={(e) => updateAnswer(e.target.value)}
+                  placeholder="Enter name and specific topic..."
+                  className="mt-6 min-h-[14rem] w-full resize-none rounded-[1.75rem] border border-slate-200 bg-slate-50 px-6 py-5 text-[1rem] leading-7 text-slate-800 placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                />
+
+                <div className="mt-7 space-y-5">
+                  <div>
+                    <p className="mb-3 text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-slate-500">
+                      Need some inspiration?
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {PROMPT_CHIPS.map((chip) => (
+                        <button
+                          key={chip}
+                          type="button"
+                          onClick={() => updateAnswer(answer ? `${answer}, ${chip}` : chip)}
+                          className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-[0.85rem] font-semibold text-slate-700 transition hover:bg-slate-200"
+                        >
+                          {chip}
+                        </button>
+                      ))}
                     </div>
-                    <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-[0.75rem] font-semibold tracking-[0.22em] text-slate-500">
-                      {question.part} of {QUESTIONS.length}
-                    </span>
                   </div>
 
-                  <h3 className="text-[1.35rem] font-semibold leading-tight text-slate-950">
-                    {question.title}
-                  </h3>
-
-                  <textarea
-                    value={answers[index]}
-                    onChange={(e) => setAnswer(index, e.target.value)}
-                    placeholder={`Share your thoughts on: ${question.title}`}
-                    className="mt-6 min-h-[14rem] w-full resize-none rounded-[1.75rem] border border-slate-200 bg-slate-50 px-6 py-5 text-[1rem] leading-7 text-slate-800 placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  />
-
-                  <div className="mt-7 space-y-5">
-                    <div>
-                      <p className="mb-3 text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-slate-500">
-                        Need some inspiration?
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {PROMPT_CHIPS.map((chip) => (
-                          <button
-                            key={chip}
-                            type="button"
-                            onClick={() => {
-                              const current = answers[index];
-                              const nextValue = current ? `${current}, ${chip}` : chip;
-                              setAnswer(index, nextValue);
-                            }}
-                            className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-[0.85rem] font-semibold text-slate-700 transition hover:bg-slate-200"
-                          >
-                            {chip}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="mb-3 text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-slate-500">
-                        How does this make you feel?
-                      </p>
-                      <div className="flex flex-wrap gap-3">
-                        {EMOJI_ROWS.map((emoji) => (
-                          <button
-                            key={emoji}
-                            type="button"
-                            onClick={() => {
-                              const current = answers[index];
-                              const nextValue = current ? `${current} ${emoji}` : emoji;
-                              setAnswer(index, nextValue);
-                            }}
-                            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-[1.25rem] transition hover:bg-slate-100"
-                          >
-                            {emoji}
-                          </button>
-                        ))}
-                      </div>
+                  <div>
+                    <p className="mb-3 text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-slate-500">
+                      How does this make you feel?
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      {EMOJI_ROWS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => updateAnswer(answer ? `${answer} ${emoji}` : emoji)}
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-[1.25rem] transition hover:bg-slate-100"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-2 text-slate-500">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  disabled={currentIndex === 0}
-                  className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-[0.9rem] font-semibold transition ${
-                    currentIndex === 0
-                      ? "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-300"
-                      : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  <ChevronIcon className="h-4 w-4 rotate-180" />
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={resetSlider}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-[0.9rem] font-semibold text-slate-600 transition hover:bg-slate-50"
-                >
-                  Reset
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={isLastSlide ? saveToProfile : goNext}
-                disabled={!canContinue}
-                className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-[0.95rem] font-semibold transition ${
-                  !canContinue
-                    ? "cursor-not-allowed bg-slate-200 text-slate-400"
-                    : isLastSlide
-                    ? "bg-bvm-title text-white hover:bg-bvm-title/90"
-                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {isLastSlide ? (saved ? "Saved" : "Save to my profile") : "Next"}
-              </button>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-3 text-slate-500">
-              <div className="flex items-center gap-2">
-                {QUESTIONS.map((_, index) => (
-                  <span
-                    key={index}
-                    className={`h-2.5 w-2.5 rounded-full ${
-                      index === currentIndex ? "bg-bvm-title" : "bg-slate-200"
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={saveThisWeek}
+                    disabled={!canContinue}
+                    className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-[0.95rem] font-semibold transition ${
+                      !canContinue
+                        ? "cursor-not-allowed bg-slate-200 text-slate-400"
+                        : "bg-bvm-title text-white hover:bg-bvm-title/90"
                     }`}
-                  />
-                ))}
+                  >
+                    Save this week
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goNextWeek}
+                    disabled={currentWeek === 9}
+                    className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-[0.95rem] font-semibold transition ${
+                      currentWeek === 9
+                        ? "cursor-not-allowed bg-slate-200 text-slate-400"
+                        : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    Next week
+                  </button>
+                </div>
+
+                {savedWeeks[currentWeek] ? (
+                  <p className="mt-4 text-sm font-medium text-emerald-700">Saved this week</p>
+                ) : null}
               </div>
-              {saved ? <p className="text-sm font-medium text-emerald-700">Saved to your profile</p> : null}
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
   );
 }
