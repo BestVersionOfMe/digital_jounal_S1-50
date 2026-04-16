@@ -85,7 +85,7 @@ export function HonestySection({ headingId }: Props) {
 
   return (
     <div className="mx-auto max-w-[76rem] px-5 pb-16 pt-8 sm:px-10 sm:pb-24 sm:pt-12">
-      <div className="mb-10 text-center">
+      <div className="mb-10 rounded-[1.75rem] bg-white px-6 py-8 shadow-[0_18px_50px_rgba(15,23,42,0.08)] text-center sm:px-8">
         <h1 className="mx-auto max-w-2xl text-[2.4rem] font-semibold tracking-[-0.04em] text-slate-950 sm:text-[3rem]">
           Giving <span className="text-sky-600">Feedback</span>
         </h1>

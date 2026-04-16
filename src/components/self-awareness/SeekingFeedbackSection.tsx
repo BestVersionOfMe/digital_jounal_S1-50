@@ -1,21 +1,17 @@
-﻿"use client";
-
+﻿
+"use client";
 import { useState } from "react";
 import { useJournalStorage } from "@/hooks/useJournalStorage";
-
-type Props = { headingId: string };
 
 const QUESTIONS = [
   { part: 1, title: "What’s one thing I did really well write below?" },
   { part: 2, title: "What’s one thing I could improve next time write below?" },
-  { part: 3, title: "If you were in my shoes, what would you have done differently?" },
+  { part: 3, title: "If you were in my shoes what would you have done differently?" },
   { part: 4, title: "Do you have any advice for me on how to improve?" },
   { part: 5, title: "Who could you ask for feedback this week?" },
 ];
 
 const PROMPT_CHIPS = [
-  "Being a good listener",
-  "Positive attitude",
   "Creativity",
   "Honest",
   "Never giving up",
@@ -177,8 +173,8 @@ export function SeekingFeedbackSection({ headingId }: Props) {
                   className="mt-6 min-h-[14rem] w-full resize-none rounded-[1.75rem] border border-slate-200 bg-slate-50 px-6 py-5 text-[1rem] leading-7 text-slate-800 placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 />
 
-                <div className="mt-7 space-y-3">
-                  <div className="mb-1 text-[0.95rem] font-medium text-slate-500">Select a quick response:</div>
+                <div className="mt-7 space-y-5">
+                  <div className="mb-1 text-[0.95rem] font-medium text-slate-500">Answer ideas</div>
                   <div className="flex flex-wrap gap-3">
                     {["Feeling clear", "Need more info", "Helpful insight"].map((chip) => (
                       <button
