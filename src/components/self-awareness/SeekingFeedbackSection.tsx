@@ -177,23 +177,19 @@ export function SeekingFeedbackSection({ headingId }: Props) {
                   className="mt-6 min-h-[14rem] w-full resize-none rounded-[1.75rem] border border-slate-200 bg-slate-50 px-6 py-5 text-[1rem] leading-7 text-slate-800 placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 />
 
-                <div className="mt-7 space-y-5">
-                  <div>
-                    <p className="mb-3 text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-slate-500">
-                      Need some inspiration?
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {PROMPT_CHIPS.map((chip) => (
-                        <button
-                          key={chip}
-                          type="button"
-                          onClick={() => updateAnswer(answer ? `${answer}, ${chip}` : chip)}
-                          className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-[0.85rem] font-semibold text-slate-700 transition hover:bg-slate-200"
-                        >
-                          {chip}
-                        </button>
-                      ))}
-                    </div>
+                <div className="mt-7 space-y-3">
+                  <div className="mb-1 text-[0.95rem] font-medium text-slate-500">Select a quick response:</div>
+                  <div className="flex flex-wrap gap-3">
+                    {["Feeling clear", "Need more info", "Helpful insight"].map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => updateAnswer(answer ? `${answer}, ${chip}` : chip)}
+                        className="rounded-full border border-slate-200 bg-slate-100 px-5 py-2 text-[0.95rem] font-semibold text-slate-700 transition hover:bg-slate-200"
+                      >
+                        {chip}
+                      </button>
+                    ))}
                   </div>
 
                   <div>
