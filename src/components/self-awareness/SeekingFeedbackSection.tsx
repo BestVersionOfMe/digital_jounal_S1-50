@@ -1,33 +1,26 @@
+﻿
 "use client";
-
+import { useState } from "react";
 import { useJournalStorage } from "@/hooks/useJournalStorage";
-import { JOURNAL_GLASS_BORDER, JOURNAL_GLASS_PANEL_BASE } from "@/lib/self-awareness";
 
-type Props = { headingId: string };
-
-const SUGGESTED_QUESTIONS = [
-  "What's one thing I did really well?",
-  "What's one thing I could improve next time?",
-  "If you were in my shoes, what would you have done differently?",
+const QUESTIONS = [
+  { part: 1, title: "What’s one thing I did really well write below?" },
+  { part: 2, title: "What’s one thing I could improve next time write below?" },
+  { part: 3, title: "If you were in my shoes what would you have done differently?" },
+  { part: 4, title: "Do you have any advice for me on how to improve?" },
+  { part: 5, title: "Who could you ask for feedback this week?" },
 ];
 
-function SpeechBubbleIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M5 5.5h14a2 2 0 012 2v7a2 2 0 01-2 2h-5.2L9 20v-3.5H5a2 2 0 01-2-2v-7a2 2 0 012-2z" />
-    </svg>
-  );
-}
+const PROMPT_CHIPS = [
+  "Creativity",
+  "Honest",
+  "Never giving up",
+  "Sense of humor",
+];
 
-function PencilIcon({ className }: { className?: string }) {
+const EMOJI_ROWS = ["😊", "🙂", "😌", "✨", "🔥"];
+
+function ChevronIcon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -39,85 +32,215 @@ function PencilIcon({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+function TrashIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
     </svg>
   );
 }
 
 export function SeekingFeedbackSection({ headingId }: Props) {
-  const {
-    state,
-    setSeekingFeedbackText,
-    setSeekingFeedbackSubmitted,
-  } = useJournalStorage();
+  const { setSeekingFeedbackText, setSeekingFeedbackSubmitted } = useJournalStorage();
+  const [weekAnswers, setWeekAnswers] = useState<string[]>(() => Array(10).fill(""));
+  const [savedWeeks, setSavedWeeks] = useState<boolean[]>(() => Array(10).fill(false));
+  const [currentWeek, setCurrentWeek] = useState(0);
 
-  const text = state.seekingFeedbackText;
-  const trimmed = text.trim();
-  const locked = state.seekingFeedbackSubmitted && trimmed.length > 0;
+  const answer = weekAnswers[currentWeek];
+  const canContinue = answer.trim().length > 0;
+  const weekNumber = currentWeek + 1;
+  const weekDate = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }).format(new Date());
+
+  const updateAnswer = (value: string) => {
+    setWeekAnswers((prev) => {
+      const next = [...prev];
+      next[currentWeek] = value;
+      return next;
+    });
+  };
+
+  const saveThisWeek = () => {
+    setSavedWeeks((prev) => {
+      const next = [...prev];
+      next[currentWeek] = true;
+      return next;
+    });
+    setSeekingFeedbackSubmitted(true);
+    setSeekingFeedbackText(answer.trim());
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("seeking_feedback_answers", JSON.stringify(weekAnswers));
+    }
+  };
+
+  const goNextWeek = () => {
+    if (currentWeek < 9) {
+      setCurrentWeek((prev) => prev + 1);
+    }
+  };
+
+  const clearWeek = () => {
+    setWeekAnswers((prev) => {
+      const next = [...prev];
+      next[currentWeek] = "";
+      return next;
+    });
+    setSavedWeeks((prev) => {
+      const next = [...prev];
+      next[currentWeek] = false;
+      return next;
+    });
+  };
 
   return (
-    <div className="mx-auto max-w-[40rem] px-5 pb-16 pt-8 sm:max-w-[42rem] sm:px-8 sm:pb-20 sm:pt-10">
-      <section
-        className={`relative ${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.seekingFeedback}`}
-        aria-labelledby={headingId}
-      >
-        <p className="mt-3 text-[0.9375rem] leading-[1.75] text-slate-600 sm:text-[1rem]">
-          When you&apos;re asking someone for feedback, you can help them by being specific. Try questions like:
-        </p>
-
-        <ul className="mt-5 space-y-3.5">
-          {SUGGESTED_QUESTIONS.map((q) => (
-            <li key={q} className="flex gap-3">
-              <SpeechBubbleIcon className="mt-0.5 h-5 w-5 shrink-0 text-[#7b9bd4]" />
-              <span className="text-[0.9375rem] italic leading-relaxed text-slate-700 sm:text-[1rem]">{q}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="relative mt-8">
-          <div className={locked ? "pr-11" : undefined}>
-            <label htmlFor="seeking-feedback-who" className="block text-[0.95rem] font-bold text-slate-800">
-              Who could you ask for feedback this week?
-            </label>
+    <div className="mx-auto max-w-[78rem] px-5 pb-16 pt-8 sm:px-10 sm:pb-24 sm:pt-12">
+      <section className="relative" aria-labelledby={headingId}>
+        <div className="mx-auto max-w-[68rem] rounded-[2rem] border border-slate-200 bg-slate-50 px-6 py-8 shadow-[0_20px_80px_rgba(15,23,42,0.08)] sm:px-8 sm:py-10">
+          <div className="mb-8 rounded-[1.75rem] bg-white px-6 py-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:px-8">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.32em] text-slate-500">
+                Growth Mindset
+              </span>
+              <h2 className="text-[2.1rem] font-semibold leading-[1.05] tracking-[-0.04em] text-slate-950 sm:text-[2.5rem]">
+                Seeking <span className="text-sky-600">Feedback</span>
+              </h2>
+              <p className="max-w-3xl text-[1rem] leading-8 text-slate-600 sm:text-[1.02rem]">
+                When you’re asking someone for feedback, you can help them by being specific. Try using the questions below to guide your conversation.
+              </p>
+            </div>
           </div>
 
-          {locked ? (
-            <>
-              <button
-                type="button"
-                onClick={() => setSeekingFeedbackSubmitted(false)}
-                className="absolute right-0 top-0 rounded-lg p-2 text-slate-500 transition-colors hover:bg-white/60 hover:text-bvm-title focus:outline-none focus:ring-2 focus:ring-[#7b8fd4]/35"
-                aria-label="Edit answer"
-              >
-                <PencilIcon className="h-5 w-5" />
-              </button>
-              <div className="mt-3 min-h-[5.5rem] whitespace-pre-wrap rounded-xl border border-slate-200/80 bg-[#e8e4f2]/25 px-4 py-3 text-[0.9375rem] leading-relaxed text-slate-800">
-                {text}
+          <div className="relative mx-auto w-full max-w-[62rem] overflow-hidden rounded-[2rem]">
+            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-8 shadow-[0_20px_50px_rgba(15,23,42,0.05)]">
+              <div className="mb-6">
+                <div className="rounded-[1.5rem] border border-slate-200 bg-white px-6 py-6 shadow-sm text-center">
+                  <h3 className="text-[1.45rem] font-semibold tracking-[-0.03em] text-slate-950 m-0">
+                    Weekly feedback check-in
+                  </h3>
+                </div>
               </div>
-            </>
-          ) : (
-            <>
-              <textarea
-                id="seeking-feedback-who"
-                name="seekingFeedback"
-                rows={4}
-                value={text}
-                onChange={(e) => setSeekingFeedbackText(e.target.value)}
-                placeholder="Enter name and specific topic..."
-                className="mt-3 w-full resize-y rounded-xl border border-slate-200/80 bg-[#e8e4f2]/35 px-4 py-3 text-[0.9375rem] leading-relaxed text-slate-800 placeholder:italic placeholder:text-slate-400 focus:border-[#7b8fd4]/80 focus:outline-none focus:ring-2 focus:ring-[#7b8fd4]/25"
-              />
-              <button
-                type="button"
-                disabled={trimmed.length === 0}
-                onClick={() => setSeekingFeedbackSubmitted(true)}
-                className="mt-4 w-full rounded-xl bg-bvm-title px-5 py-3 text-[0.95rem] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-bvm-title/90 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-              >
-                Submit
-              </button>
-            </>
-          )}
-        </div>
-      </section>
-    </div>
+
+              <div className="mb-6 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-sky-600 transition-all duration-300"
+                  style={{ width: `${weekNumber * 10}%` }}
+                />
+              </div>
+
+              <div className="mb-8 space-y-3">
+                {QUESTIONS.slice(0, 4).map((question) => (
+                  <div key={question.part} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-slate-700 shadow-sm">
+                    <p className="text-sm font-medium text-slate-900">{question.title}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-slate-500">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[0.75rem] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                    Week {weekNumber}
+                  </span>
+                  <span className="text-sm font-medium text-slate-700">{weekDate}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearWeek}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100"
+                  aria-label="Delete week"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </button>
+              </div>
+              <h3 className="text-[1.35rem] font-semibold leading-tight text-slate-950">
+                {QUESTIONS[4].title}
+              </h3>
+                <textarea
+                  value={answer}
+                  onChange={(e) => updateAnswer(e.target.value)}
+                  placeholder="Enter name and specific topic..."
+                  className="mt-6 min-h-[14rem] w-full resize-none rounded-[1.75rem] border border-slate-200 bg-slate-50 px-6 py-5 text-[1rem] leading-7 text-slate-800 placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                />
+
+                <div className="mt-7 space-y-5">
+                  <div className="mb-1 text-[0.95rem] font-medium text-slate-500">Answer ideas</div>
+                  <div className="flex flex-wrap gap-3">
+                    {["Feeling clear", "Need more info", "Helpful insight"].map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => updateAnswer(answer ? `${answer}, ${chip}` : chip)}
+                        className="rounded-full border border-slate-200 bg-slate-100 px-5 py-2 text-[0.95rem] font-semibold text-slate-700 transition hover:bg-slate-200"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div>
+                    <p className="mb-3 text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-slate-500">
+                      How does this make you feel?
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      {EMOJI_ROWS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => updateAnswer(answer ? `${answer} ${emoji}` : emoji)}
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-[1.25rem] transition hover:bg-slate-100"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={saveThisWeek}
+                    disabled={!canContinue}
+                    className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-[0.95rem] font-semibold transition ${
+                      !canContinue
+                        ? "cursor-not-allowed bg-slate-200 text-slate-400"
+                        : "bg-bvm-title text-white hover:bg-bvm-title/90"
+                    }`}
+                  >
+                    Save this week
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goNextWeek}
+                    disabled={currentWeek === 9}
+                    className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-[0.95rem] font-semibold transition ${
+                      currentWeek === 9
+                        ? "cursor-not-allowed bg-slate-200 text-slate-400"
+                        : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    Next week
+                  </button>
+                </div>
+
+                {savedWeeks[currentWeek] ? (
+                  <p className="mt-4 text-sm font-medium text-emerald-700">Saved this week</p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
   );
 }
