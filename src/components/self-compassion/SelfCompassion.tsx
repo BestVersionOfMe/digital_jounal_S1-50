@@ -161,13 +161,6 @@ export default function SelfCompassion() {
   ]);
 
   const resetEntireWorkshop = useCallback(() => {
-    if (
-      !window.confirm(
-        "Clear all answers in Self Compassion and start again from step 1? Your saved progress will be removed until you fill it in again.",
-      )
-    ) {
-      return;
-    }
     clearSelfCompassionWorkshop();
     applySnapshot(defaultSelfCompassionWorkshop());
   }, [applySnapshot]);
@@ -232,28 +225,24 @@ export default function SelfCompassion() {
 
   const handleChipClick = (chip: string) => {
 
-    const appendIfNotExists = (prev: string) => {
+    const toggleChip = (prev: string) => {
+      if (prev.includes(chip)) {
 
-      // Check Prompt Chips repeat
-      if (prev.includes(chip))
-        return prev;
+        let newText = prev.replace(chip, "").trim();
+        newText = newText.replace(/^,\s*|,\s*$/g, "").trim();
+        newText = newText.replace(/,\s*,/g, ", ");
+        return newText;
+      }
 
       return prev ? `${prev}, ${chip}` : chip;
     };
 
-    if (step === 1) {
-      setQ1Answer(appendIfNotExists);
-    } else if (step === 2) {
-      setQ2Answer(appendIfNotExists);
-    } else if (step === 3) {
-      setQ3Answer(appendIfNotExists);
-    } else if (step === 4) {
-      setQ4Answer(appendIfNotExists);
-    } else if (step === 5) {
-      setQ5Answer(appendIfNotExists);
-    } else if (step === 9) {
-      setQ10Answer(appendIfNotExists);
-    }
+    if (step === 1) setQ1Answer(toggleChip);
+    else if (step === 2) setQ2Answer(toggleChip);
+    else if (step === 3) setQ3Answer(toggleChip);
+    else if (step === 4) setQ4Answer(toggleChip);
+    else if (step === 5) setQ5Answer(toggleChip);
+    else if (step === 9) setQ10Answer(toggleChip);
   };
 
 
@@ -289,7 +278,7 @@ export default function SelfCompassion() {
       setReallyChoice(null);
       setQ10Answer('');
 
-      return; 
+      return;
 
     }
 
@@ -357,11 +346,11 @@ export default function SelfCompassion() {
           <div className="flex w-full items-center justify-end">
             <button
               type="button"
-              className={scResetBtn}
+              className="text-[0.8125rem] text-slate-500 underline underline-offset-4"
               onClick={resetEntireWorkshop}
               aria-label="Reset Self Compassion workshop and clear saved answers"
             >
-              Reset
+              Start Over
             </button>
           </div>
           <div className="w-full animate-fade-in-up text-center">
@@ -464,7 +453,7 @@ export default function SelfCompassion() {
         className={`${JOURNAL_GLASS_PANEL_BASE} ${JOURNAL_GLASS_BORDER.selfCompassion} ${scCardInset} transition-colors duration-700 ${getGlassTone()}`}
       >
         {/* Top bar */}
-        <div className="flex w-full items-center justify-between gap-3 pt-0 mb-8">
+        {/* <div className="flex w-full items-center justify-between gap-3 pt-0 mb-8">
           <button
             type="button"
             onClick={handleBack}
@@ -474,17 +463,7 @@ export default function SelfCompassion() {
           >
             ← Back
           </button>
-
-          {/* Reset button */}
-          {/* <button
-          type="button"
-          className={scResetBtn}
-          onClick={resetEntireWorkshop}
-          aria-label="Reset Self Compassion workshop and clear saved answers"
-        >
-          Reset
-        </button> */}
-        </div>
+        </div> */}
 
 
         {/* Main Body — section title lives on the page (outside this card), same as other blocks */}
@@ -505,17 +484,26 @@ export default function SelfCompassion() {
 
               <div className="mt-6">
                 <p className="mb-3 text-[0.8125rem] font-medium text-slate-600">Need some inspiration?</p>
-                <div className="flex flex-wrap gap-2">
-                  {promptChipsConfig[step as keyof typeof promptChipsConfig]?.map((chip) => (
-                    <button
-                      key={chip}
-                      type="button"
-                      onClick={() => handleChipClick(chip)}
-                      className={scChip}
-                    >
-                      {chip}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap gap-2.5">
+                  {promptChipsConfig[step as keyof typeof promptChipsConfig]?.map((chip) => {
+
+                    const isSelected = getCurrentAnswer().includes(chip);
+
+                    return (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => handleChipClick(chip)}
+
+                        className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[0.875rem] font-medium transition-all ${isSelected
+                          ? "border-[#7b8fd4] bg-[#7b8fd4]/10 text-[#5468b1] shadow-sm"
+                          : "border-slate-200/90 bg-white/60 text-slate-600 hover:bg-white"
+                          }`}
+                      >
+                        {chip}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -636,22 +624,6 @@ export default function SelfCompassion() {
           {/*  Part 3: Be Your Own Friend  */}
           {step === 8 && (
             <div className="relative flex w-full animate-fade-in flex-col items-center justify-center pb-6 pt-1">
-
-              {/* ↺ Reset button  */}
-              {/* {q8Choice && (
-              <button
-                type="button"
-                onClick={() => {
-                  setQ8Choice(null);
-                  setQ9Choice(null);
-                  setReallyChoice(null);
-                  setQ10Answer("");
-                }}
-                className="absolute right-0 top-0 text-[0.8125rem] font-medium text-slate-500 transition-colors hover:text-slate-800 sm:right-0.5"
-              >
-                ↺ Reset choice
-              </button>
-            )} */}
 
               {!q8Choice && (
                 <div className="w-full animate-fade-in-up">
@@ -796,35 +768,42 @@ export default function SelfCompassion() {
               })}
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                
-                if (step === 8 && q8Choice === 'negative' && !showFeedback) {
-                  setShowFeedback(true);
-                }
-                
-                else if (step < totalSteps) {
-                  setStep(step + 1);
-                }
-                
-                else {
-                  setIsCompleted(true);
-                }
-              }}
-              disabled={!isCurrentStepValid()}
-              className={`inline-flex items-center gap-2 px-5 py-3 text-[0.95rem] font-semibold transition-colors ${!isCurrentStepValid()
-                ? "cursor-not-allowed rounded-xl bg-slate-200 text-slate-400"
-                
-                : (step === totalSteps && (q8Choice === 'positive' || showFeedback))
-                  ? `${scBtnPrimary} rounded-xl`
-                  : `${scBtnSecondary} rounded-xl`
-                }`}
-            >
-              
-              {(step === totalSteps && (q8Choice === 'positive' || showFeedback)) ? "Finish" : "Next"}
-              {(step === totalSteps && (q8Choice === 'positive' || showFeedback)) ? <span aria-hidden>✨</span> : <span aria-hidden>≫</span>}
-            </button>
+            <div className="flex items-center gap-6">
+
+
+              <button
+                type="button"
+                onClick={handleBack}
+
+                className={`text-[0.8125rem] font-medium transition-all underline decoration-transparent hover:decoration-slate-300 underline-offset-4 ${step === 1 ? "pointer-events-none opacity-0" : "text-slate-500 hover:text-slate-800"
+                  }`}
+              >
+                ← Back
+              </button>
+
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (step === 8 && q8Choice === 'negative' && !showFeedback) {
+                    setShowFeedback(true);
+                  } else if (step < totalSteps) {
+                    setStep(step + 1);
+                  } else {
+                    setIsCompleted(true);
+                  }
+                }}
+                disabled={!isCurrentStepValid()}
+                className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-[0.95rem] font-semibold text-white bg-bvm-title transition-all ${!isCurrentStepValid()
+                    ? "cursor-not-allowed opacity-40"
+                    : "shadow-sm hover:-translate-y-0.5 hover:bg-bvm-title/90 hover:shadow-md"
+                  }`}
+              >
+                {(step === totalSteps && (q8Choice === 'positive' || showFeedback)) ? "Finish" : "Next"}
+                {(step === totalSteps && (q8Choice === 'positive' || showFeedback)) ? <span aria-hidden>✨</span> : <span aria-hidden>≫</span>}
+              </button>
+
+            </div>
 
           </div>
         </div>
