@@ -6,7 +6,7 @@ import { HonestySection } from "@/components/self-awareness/HonestySection";
 import { JournalPageFooter } from "@/components/self-awareness/JournalPageFooter";
 import { MindfulnessSection } from "@/components/self-awareness/MindfulnessSection";
 import { SelfReflectionSection } from "@/components/self-awareness/SelfReflectionSection";
-import { SeekingFeedbackSection } from "@/components/self-awareness/SeekingFeedbackSection";
+import { SeekingFeedbackSection } from "@/components/seeking-feedback/SeekingFeedback";
 import { JournalNav } from "@/components/journal/JournalNav";
 import { JOURNAL_NAV_ITEMS } from "@/lib/journal-nav";
 
