@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { JOURNAL_GLASS_BORDER, JOURNAL_GLASS_PANEL_BASE } from "@/lib/self-awareness";
 
 type Props = { headingId: string };
 
@@ -19,7 +20,6 @@ const exercises = [
       "Exhale slowly and repeat 3 times",
     ],
     emoji: "🧍",
-    accent: "from-emerald-100 to-emerald-50",
     badge: "bg-emerald-100 text-emerald-700",
     progress: "bg-emerald-500",
   },
@@ -38,7 +38,6 @@ const exercises = [
       "Continue for all five fingers",
     ],
     emoji: "✋",
-    accent: "from-blue-100 to-blue-50",
     badge: "bg-blue-100 text-blue-700",
     progress: "bg-blue-500",
   },
@@ -56,7 +55,6 @@ const exercises = [
       "Switch to the other leg and repeat",
     ],
     emoji: "🦶",
-    accent: "from-amber-100 to-amber-50",
     badge: "bg-amber-100 text-amber-700",
     progress: "bg-amber-500",
   },
@@ -74,7 +72,6 @@ const exercises = [
       "Notice the texture as you eat",
     ],
     emoji: "🍎",
-    accent: "from-rose-100 to-rose-50",
     badge: "bg-rose-100 text-rose-700",
     progress: "bg-rose-500",
   },
@@ -92,7 +89,6 @@ const exercises = [
       "Find a third object and notice details about each",
     ],
     emoji: "🎨",
-    accent: "from-purple-100 to-purple-50",
     badge: "bg-purple-100 text-purple-700",
     progress: "bg-purple-500",
   },
@@ -110,7 +106,6 @@ const exercises = [
       "Repeat this cycle 3 times",
     ],
     emoji: "🌬️",
-    accent: "from-sky-100 to-sky-50",
     badge: "bg-sky-100 text-sky-700",
     progress: "bg-sky-500",
   },
@@ -128,7 +123,6 @@ const exercises = [
       "Let the feeling stay with you",
     ],
     emoji: "😊",
-    accent: "from-pink-100 to-pink-50",
     badge: "bg-pink-100 text-pink-700",
     progress: "bg-pink-500",
   },
@@ -146,7 +140,6 @@ const exercises = [
       "Take it all in for one full minute",
     ],
     emoji: "👀",
-    accent: "from-green-100 to-green-50",
     badge: "bg-green-100 text-green-700",
     progress: "bg-green-500",
   },
@@ -164,7 +157,6 @@ const exercises = [
       "Notice sounds you had not heard before",
     ],
     emoji: "👂",
-    accent: "from-orange-100 to-orange-50",
     badge: "bg-orange-100 text-orange-700",
     progress: "bg-orange-500",
   },
@@ -182,7 +174,6 @@ const exercises = [
       "Feel the words within you",
     ],
     emoji: "✨",
-    accent: "from-indigo-100 to-indigo-50",
     badge: "bg-indigo-100 text-indigo-700",
     progress: "bg-indigo-500",
   },
@@ -398,6 +389,7 @@ export function MindfulnessSection({ headingId }: Props) {
       
       {/* Centered Heading */}
       <div className="mb-8 text-center">
+        {/* MATCHED TEAMMATES: Applied font-carmensin and reduced size to text-xl sm:text-2xl */}
         <h2 id={headingId} className="text-xl sm:text-2xl font-bold tracking-widest text-[#3a648b] uppercase font-carmensin">
           10+ MINI MINDFULNESS EXERCISES
         </h2>
@@ -407,12 +399,12 @@ export function MindfulnessSection({ headingId }: Props) {
       <div className="rounded-[2rem] border border-blue-50/50 bg-white/95 p-6 sm:p-10 shadow-sm space-y-12">
         
         <section aria-labelledby={headingId}>
-          <p className="mb-6 text-sm leading-7 text-slate-600 sm:text-base text-center">
-            Tap an exercise to practice being present. Each one takes just a few minutes and
+          <p className="mb-6 text-sm leading-7 text-slate-600 sm:text-base">
+            Try these quick exercises to practice being present. Each one takes just a few minutes and
             helps build focus, calm, and self-awareness.
           </p>
 
-          <div className="mb-8 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-sm">
+          <div className="mb-6 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-sm">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-semibold text-slate-900">Your Progress</span>
               <span className="text-sm text-slate-600">
@@ -427,40 +419,23 @@ export function MindfulnessSection({ headingId }: Props) {
             </div>
           </div>
 
-          {/* This is the grid container! It perfectly balances 3 items per row */}
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            {exercises.map((exercise, index) => {
-              const isActive = activeExercise === exercise.id;
-              
-              // Smart Grid Logic:
-              // - If active, take up the full width (col-span-3)
-              // - If it's the 10th item (index 9) AND no item is currently active, push it to the middle column (col-start-2)
-              // - Otherwise, just act like a normal grid item (col-span-1)
-              let gridClass = "col-span-1";
-              if (isActive) {
-                gridClass = "col-span-3";
-              } else if (index === 9 && activeExercise === null) {
-                gridClass = "col-span-1 col-start-2";
-              }
-
-              return (
-                <div key={exercise.id} className={gridClass}>
-                  <ExerciseCard
-                    exercise={exercise}
-                    isActive={isActive}
-                    onSelect={() =>
-                      setActiveExercise((prev) => (prev === exercise.id ? null : exercise.id))
-                    }
-                    isCompleted={completedExercises.includes(exercise.id)}
-                    onComplete={() => handleComplete(exercise.id)}
-                  />
-                </div>
-              );
-            })}
+          <div className="space-y-3">
+            {exercises.map((exercise) => (
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                isActive={activeExercise === exercise.id}
+                onSelect={() =>
+                  setActiveExercise((prev) => (prev === exercise.id ? null : exercise.id))
+                }
+                isCompleted={completedExercises.includes(exercise.id)}
+                onComplete={() => handleComplete(exercise.id)}
+              />
+            ))}
           </div>
         </section>
 
-        <hr className="border-slate-100" />
+          <hr className="border-slate-100" />
 
         <section>
           <h3 className="mb-4 text-xl font-medium text-[#3a648b] font-carmensin">Mindfulness Reflection</h3>
@@ -542,6 +517,68 @@ export function MindfulnessSection({ headingId }: Props) {
                 })}
               </div>
             </div>
+          </div>
+        </section>
+
+        <hr className="border-slate-100" />
+
+        <section>
+          {/* MATCHED TEAMMATES: Applied font-carmensin, specific blue color, and adjusted size */}
+          <h3 className="mb-4 text-xl font-medium text-[#3a648b] font-carmensin">Why Mindfulness Matters</h3>
+          <p className="mb-6 text-sm leading-7 text-slate-600">
+            Regular mindfulness practice can improve focus, reduce stress, and help you respond more calmly.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border-l-4 border-emerald-500 bg-slate-50 p-5">
+              <h4 className="mb-2 font-semibold text-slate-900">Better Focus</h4>
+              <p className="text-sm leading-6 text-slate-600">
+                Mindfulness trains your brain to concentrate on one thing at a time.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border-l-4 border-blue-500 bg-slate-50 p-5">
+              <h4 className="mb-2 font-semibold text-slate-900">Less Stress</h4>
+              <p className="text-sm leading-6 text-slate-600">
+                Taking mindful pauses helps calm your nervous system and reduce anxiety.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border-l-4 border-amber-500 bg-slate-50 p-5">
+              <h4 className="mb-2 font-semibold text-slate-900">More Patience</h4>
+              <p className="text-sm leading-6 text-slate-600">
+                Mindfulness helps you respond thoughtfully instead of reacting impulsively.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border-l-4 border-rose-500 bg-slate-50 p-5">
+              <h4 className="mb-2 font-semibold text-slate-900">Greater Happiness</h4>
+              <p className="text-sm leading-6 text-slate-600">
+                Being present helps you appreciate small moments and feel more content.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="pb-4">
+          <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm">
+            {/* MATCHED TEAMMATES: Applied font-carmensin, specific blue color, and adjusted size */}
+            <h3 className="mb-2 text-lg font-medium text-[#3a648b] font-carmensin">7-Day Mindfulness Challenge</h3>
+            <p className="mb-4 text-sm leading-6 text-slate-600">
+              Try one exercise each day for a week. Notice how your awareness grows.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setChallengeStarted(true)}
+              className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
+                challengeStarted
+                  ? "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-slate-900 text-white hover:bg-slate-800"
+              }`}
+            >
+              {challengeStarted ? "Challenge Started" : "Start Challenge"}
+            </button>
           </div>
         </section>
 
